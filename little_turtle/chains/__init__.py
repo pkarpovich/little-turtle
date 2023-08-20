@@ -1,1 +1,1 @@
-from .turtle_story_chain import TurtleStoryChain
+from .turtle_story_chain import TurtleStoryChain, enrich_run_variables

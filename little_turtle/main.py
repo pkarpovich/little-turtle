@@ -1,21 +1,29 @@
 import asyncio
 import os
+import random
 
-from langchain.chat_models.openai import ChatOpenAI
+from langchain.chat_models import ChatOpenAI
 
-from little_turtle.chains import TurtleStoryChain
-from little_turtle.services.config_service import AppConfig
+from little_turtle.chains import enrich_run_variables, TurtleStoryChain
+from little_turtle.services import AppConfig, TelegramService
 
 
 async def main():
-    AppConfig(os.environ)
+    config = AppConfig(os.environ)
 
+    telegram_service = TelegramService(config)
+    await telegram_service.login()
+    messages = await telegram_service.get_messages(config.TURTLE_CHANNEL_ID)
+    picked_messages = random.sample(messages, 3)
+
+    llm = ChatOpenAI(model_name=AppConfig.OPENAI_MODEL, openai_api_key=config.OPENAI_API_KEY)
     chain = TurtleStoryChain(
-        llm=ChatOpenAI(),
+        llm=llm,
     )
 
-    response = chain.run({"date": "27.08.2023"})
-    print(response)
+    story_variables = enrich_run_variables("27.08.2023", picked_messages)
+    response_msg = chain.run(story_variables)
+    print(response_msg)
 
 
 if __name__ == "__main__":

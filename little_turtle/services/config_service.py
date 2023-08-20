@@ -11,6 +11,13 @@ class AppConfig:
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = "gpt-4"
 
+    TELEGRAM_API_ID: int
+    TELEGRAM_API_HASH: str
+    TELEGRAM_PHONE_NUMBER: str
+    TELEGRAM_SESSION_NAME: str = "little_turtle"
+
+    TURTLE_CHANNEL_ID: str = "young_turtle_in_hat"
+
     def __init__(self, env):
         load_dotenv()
 
