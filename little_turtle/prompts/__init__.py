@@ -1,0 +1,1 @@
+from .turtle_story_prompt import TURTLE_STORY_PROMPT_TEMPLATE
