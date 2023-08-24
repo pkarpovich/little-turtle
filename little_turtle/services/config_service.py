@@ -11,6 +11,11 @@ class AppConfig:
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = "gpt-4"
 
+    MONGODB_URI: str
+    MONGODB_USERNAME: str
+    MONGODB_PASSWORD: str
+    MONGODB_DB_NAME: str = "little_turtle"
+
     TELEGRAM_API_ID: int
     TELEGRAM_API_HASH: str
     TELEGRAM_PHONE_NUMBER: str
