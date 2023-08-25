@@ -1,6 +1,4 @@
-import locale
-import random
-from datetime import datetime
+from typing import TypedDict, List
 
 from langchain import LLMChain, PromptTemplate
 from langchain.base_language import BaseLanguageModel
@@ -8,29 +6,14 @@ from langchain.chains.base import Chain
 
 from little_turtle.prompts import TURTLE_STORY_PROMPT_TEMPLATE
 from little_turtle.stores import Story
+from little_turtle.utils import get_day_of_week, random_pick_n
 
 
-def get_day_of_week(date: str) -> str:
-    locale.setlocale(locale.LC_TIME, 'ru_RU')
-
-    date_obj = datetime.strptime(date, '%d.%m.%Y')
-    return date_obj.strftime('%A').capitalize()
-
-
-def enrich_run_variables(date: str, stories: list[Story]) -> dict:
-    picked_messages = random.sample(
-        list(
-            map(lambda story: story["content"], stories)
-        ),
-        3
-    )
-
-    return {
-        "date": f"{date} ({get_day_of_week(date)})",
-        "message_example_1": picked_messages[0],
-        "message_example_2": picked_messages[1],
-        "message_example_3": picked_messages[2],
-    }
+class TurtleStoryChainVariables(TypedDict):
+    date: str
+    message_example_1: str
+    message_example_2: str
+    message_example_3: str
 
 
 class TurtleStoryChain:
@@ -42,5 +25,21 @@ class TurtleStoryChain:
             llm=llm,
         )
 
-    def run(self, variables: dict) -> str:
-        return self.llm_chain.run(variables)
+    def run(self, variables: TurtleStoryChainVariables) -> Story:
+        resp = self.llm_chain.run(variables)
+
+        return Story(
+            content=resp,
+            image_prompt='',
+        )
+
+    @staticmethod
+    def enrich_run_variables(date: str, stories: List[Story]) -> TurtleStoryChainVariables:
+        picked_messages = random_pick_n(stories, 3)
+
+        return TurtleStoryChainVariables(
+            date=f"{date} ({get_day_of_week(date)})",
+            message_example_1=picked_messages[0]["content"],
+            message_example_2=picked_messages[1]["content"],
+            message_example_3=picked_messages[2]["content"],
+        )
