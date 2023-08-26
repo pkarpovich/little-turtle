@@ -1002,6 +1002,31 @@ snappy = ["python-snappy"]
 zstd = ["zstandard"]
 
 [[package]]
+name = "pytelegrambotapi"
+version = "4.13.0"
+description = "Python Telegram bot api."
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyTelegramBotAPI-4.13.0.tar.gz", hash = "sha256:b4a42b2c304fba36e3dbb3648193486941dc0e8131886ed7c5e147465db24db0"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[package.extras]
+aiohttp = ["aiohttp"]
+aioredis = ["aioredis"]
+coloredlogs = ["coloredlogs"]
+fastapi = ["fastapi"]
+json = ["ujson"]
+pil = ["Pillow"]
+psutil = ["psutil"]
+redis = ["redis (>=3.4.1)"]
+uvicorn = ["uvicorn"]
+watchdog = ["watchdog"]
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -1361,4 +1386,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "e34b418ecf81ccdc2a324941c3d6978d3243db8b500327656888684f5d2b0f7c"
+content-hash = "9d577f8cba04b536417cb958281840eb6a614950bc290613760b94b548350ab5"

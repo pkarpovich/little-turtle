@@ -16,6 +16,7 @@ class AppConfig:
     MONGODB_PASSWORD: str
     MONGODB_DB_NAME: str = "little_turtle"
 
+    TELEGRAM_BOT_TOKEN: str
     TELEGRAM_API_ID: int
     TELEGRAM_API_HASH: str
     TELEGRAM_PHONE_NUMBER: str
