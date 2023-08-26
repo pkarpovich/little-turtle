@@ -44,6 +44,10 @@ class TelegramHandlers:
         async def imagine_story(message: Message):
             await self.imagine_story_handler(message)
 
+        @self.dp.message(Command("suggest_story"))
+        async def suggest_story(message: Message):
+            await self.suggest_story_handler(message)
+
         @self.dp.callback_query(ImageCallback.filter())
         async def button_click(query: CallbackQuery, callback_data: ImageCallback):
             await self.button_click_handler(query, callback_data)
@@ -53,7 +57,7 @@ class TelegramHandlers:
         await message.answer("Hello, I am Little Turtle!")
 
     async def story_handler(self, message: Message):
-        date = message.text.split(' ')[1]
+        date = message.reply_to_message.text or message.text.split(' ')[1]
 
         await self.bot.send_chat_action(message.chat.id, 'typing')
         story = self.story_controller.generate_story(date)
@@ -63,12 +67,18 @@ class TelegramHandlers:
     async def imagine_story_handler(self, message: Message):
         image_prompt = message.reply_to_message.text
 
-        await self.bot.send_message(message.chat.id, 'Ok, I will imagine your story...')
+        await self.bot.send_message(
+            message.chat.id,
+            'Alright, diving deep into my turtle thoughts to conjure your tale... 🐢🤔✍️'
+        )
 
         await self.bot.send_chat_action(message.chat.id, 'typing')
         image = self.story_controller.imagine_story(image_prompt)
 
-        await self.bot.send_message(message.chat.id, 'Waiting for image...')
+        await self.bot.send_message(
+            message.chat.id,
+            'Holding my turtle breath in anticipation of the image... 🐢🖼️🕰️'
+        )
         await self.__wait_for_message(image['messageId'], message.chat.id)
 
     async def suggest_story_prompt_handler(self, message: Message):
@@ -82,6 +92,17 @@ class TelegramHandlers:
 
         story = self.story_controller.suggest_story_prompt(Story(content=text, image_prompt=''))
         await message.answer(story['image_prompt'])
+
+    async def suggest_story_handler(self, message: Message):
+        date = message.reply_to_message.text or message.text.split(' ')[1]
+
+        await self.bot.send_message(
+            message.chat.id,
+            'Crafting a fresh tale just for you! 🐢📜 Hang tight!'
+        )
+
+        story = self.story_controller.suggest_story(date)
+        await message.answer(story['content'])
 
     async def button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback):
         print(callback_data.button, callback_data.message_id)

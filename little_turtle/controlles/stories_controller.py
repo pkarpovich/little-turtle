@@ -20,10 +20,7 @@ class StoriesController:
         self.image_generation_service = image_generation_service
 
     def generate_story(self, date: str) -> Story:
-        messages = self.__get_messages_for_story()
-
-        story_variables = TurtleStoryChain.enrich_run_variables(date, messages)
-        new_story = self.story_chain.run(story_variables)
+        new_story = self.suggest_story(date)
         new_story = self.suggest_story_prompt(new_story)
 
         self.image_generation_service.imagine(new_story["image_prompt"])
@@ -45,6 +42,14 @@ class StoriesController:
         story["image_prompt"] = image_prompt
 
         return story
+
+    def suggest_story(self, date) -> Story:
+        messages = self.__get_messages_for_story()
+
+        story_variables = TurtleStoryChain.enrich_run_variables(date, messages)
+        new_story = self.story_chain.run(story_variables)
+
+        return new_story
 
     def trigger_button(self, button: str, message_id: str) -> ImageRequestStatus:
         return self.image_generation_service.trigger_button(button, message_id)
