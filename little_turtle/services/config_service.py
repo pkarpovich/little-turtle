@@ -22,6 +22,8 @@ class AppConfig:
 
     TURTLE_CHANNEL_ID: str = "young_turtle_in_hat"
 
+    TNL_API_KEY: str
+
     def __init__(self, env):
         for field in self.__annotations__:
             if not field.isupper():

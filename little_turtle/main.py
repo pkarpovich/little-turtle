@@ -11,7 +11,7 @@ from little_turtle.handlers import TelegramHandlers
 async def main(
         telegram_handler: TelegramHandlers = Provide[Container.telegram_handlers],
 ):
-    telegram_handler.run()
+    await telegram_handler.run()
 
 
 if __name__ == "__main__":
