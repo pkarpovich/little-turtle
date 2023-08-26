@@ -20,24 +20,13 @@ class StoriesController:
         self.image_generation_service = image_generation_service
 
     def generate_story(self, date: str) -> Story:
-        messages = self.story_store.get_all(
-            query={
-                "image_prompt": {
-                    "$ne": ""
-                }
-            }
-        )
+        messages = self.__get_messages_for_story()
 
         story_variables = TurtleStoryChain.enrich_run_variables(date, messages)
         new_story = self.story_chain.run(story_variables)
+        new_story = self.suggest_story_prompt(new_story)
 
-        image_prompt_variables = ImagePromptsGeneratorChain.enrich_run_variables(new_story, messages)
-        image_prompt = self.image_prompt_chain.run(image_prompt_variables)
-
-        new_story["image_prompt"] = image_prompt
-
-        images = self.image_generation_service.imagine(image_prompt)
-        print(images)
+        self.image_generation_service.imagine(new_story["image_prompt"])
 
         return new_story
 
@@ -47,5 +36,24 @@ class StoriesController:
     def get_image_status(self, message_id: str) -> ImageStatus:
         return self.image_generation_service.get_image(message_id)
 
+    def suggest_story_prompt(self, story: Story) -> Story:
+        messages = self.__get_messages_for_story()
+
+        image_prompt_variables = ImagePromptsGeneratorChain.enrich_run_variables(story, messages)
+        image_prompt = self.image_prompt_chain.run(image_prompt_variables)
+
+        story["image_prompt"] = image_prompt
+
+        return story
+
     def trigger_button(self, button: str, message_id: str) -> ImageRequestStatus:
         return self.image_generation_service.trigger_button(button, message_id)
+
+    def __get_messages_for_story(self) -> list[Story]:
+        return self.story_store.get_all(
+            query={
+                "image_prompt": {
+                    "$ne": ""
+                }
+            }
+        )

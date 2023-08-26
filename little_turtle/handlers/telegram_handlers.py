@@ -8,6 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from little_turtle.controlles import StoriesController
 from little_turtle.services import AppConfig
+from little_turtle.stores import Story
 from little_turtle.utils import story_response
 
 
@@ -34,6 +35,10 @@ class TelegramHandlers:
         @self.dp.message(Command("story"))
         async def start(message: Message):
             await self.story_handler(message)
+
+        @self.dp.message(Command("suggest_story_prompt"))
+        async def suggest_story_prompt(message: Message):
+            await self.suggest_story_prompt_handler(message)
 
         @self.dp.message(Command("imagine_story"))
         async def imagine_story(message: Message):
@@ -66,6 +71,18 @@ class TelegramHandlers:
         await self.bot.send_message(message.chat.id, 'Waiting for image...')
         await self.__wait_for_message(image['messageId'], message.chat.id)
 
+    async def suggest_story_prompt_handler(self, message: Message):
+        text = message.reply_to_message.text
+
+        await self.bot.send_message(
+            message.chat.id,
+            'Getting ready to craft a new visual masterpiece! 🐢🎨 Hold on to your shell!'
+        )
+        await self.bot.send_chat_action(message.chat.id, 'typing')
+
+        story = self.story_controller.suggest_story_prompt(Story(content=text, image_prompt=''))
+        await message.answer(story['image_prompt'])
+
     async def button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback):
         print(callback_data.button, callback_data.message_id)
         message = self.story_controller.trigger_button(callback_data.button, callback_data.message_id)
@@ -93,7 +110,6 @@ class TelegramHandlers:
                 buttons = image_status['response']['buttons']
 
                 print(image_status)
-                # await asyncio.sleep(5)
 
                 builder = InlineKeyboardBuilder()
 
@@ -130,21 +146,17 @@ class TelegramHandlers:
             prev_button_len = len(buttons[i - 1]) if i - 1 >= 0 else None
             next_button_len = len(buttons[i + 1]) if i + 1 < len(buttons) else None
 
-            # Check conditions to move button to the next row
             move_to_next = False
             if prev_button_len and next_button_len:
                 move_to_next = abs(prev_button_len - current_len) == 1 and abs(current_len - next_button_len) == 1
 
             if current_len <= 2 and not move_to_next:
-                # Check if adding this button will exceed the row length
                 if len(temp_row) + 1 > 4:
                     rows.append(len(temp_row))
                     temp_row = [button]
                 else:
                     temp_row.append(button)
             else:
-                # For buttons longer than 2 characters or meeting the move_to_next condition
-                # finalize the current row (if not empty) and add the button to its own row
                 if temp_row:
                     rows.append(len(temp_row))
                     temp_row = []
@@ -152,11 +164,11 @@ class TelegramHandlers:
                 rows.append(len(temp_row))
                 temp_row = []
 
-        # Add any remaining button counts in temp_row to rows
         if temp_row:
             rows.append(len(temp_row))
 
         return rows
 
     async def run(self):
+        print("Telegram turtle is all set and eager to assist! 🐢📲 Just send a command!")
         await self.dp.start_polling(self.bot)

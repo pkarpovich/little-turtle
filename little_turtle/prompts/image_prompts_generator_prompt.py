@@ -12,6 +12,7 @@ Weights should be rarely used, and only when you really want to stress something
 To use them, add [SUBJECT]::WEIGHT to the prompt, e.g., [A house]::2 [that looks like a cat]::3 [in the style of X]::3.
 Include details like angle, materials, and technique to get a more accurate and desirable result
 In every story, there should be a little turtle in the hat.
+Image prompt should not end with point.
 
 Parameters description:
 Basic Parameters:
