@@ -1,7 +1,5 @@
 from typing import get_type_hints, Union
 
-from dotenv import load_dotenv
-
 
 class AppConfigError(Exception):
     pass
@@ -25,8 +23,6 @@ class AppConfig:
     TURTLE_CHANNEL_ID: str = "young_turtle_in_hat"
 
     def __init__(self, env):
-        load_dotenv()
-
         for field in self.__annotations__:
             if not field.isupper():
                 continue
