@@ -31,7 +31,10 @@ class ImageGenerationService:
         return self.tnl.imagine(text)
 
     def get_image(self, message_id: str) -> ImageStatus:
-        return self.tnl.get_message_and_progress(message_id, 60)
+        image = self.tnl.get_message_and_progress(message_id, 60)
+        print(image, image['response'])
+
+        return image
 
     def trigger_button(self, button: str, message_id: str) -> ImageRequestStatus:
         return self.tnl.button(button, message_id)

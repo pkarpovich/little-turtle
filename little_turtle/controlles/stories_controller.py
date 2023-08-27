@@ -1,6 +1,7 @@
 from little_turtle.chains import TurtleStoryChain, ImagePromptsGeneratorChain
 from little_turtle.services import ImageGenerationService, ImageStatus, ImageRequestStatus
 from little_turtle.stores import Story, StoryStore
+from little_turtle.utils import remove_optional_last_period
 
 
 class StoriesController:
@@ -39,7 +40,7 @@ class StoriesController:
         image_prompt_variables = ImagePromptsGeneratorChain.enrich_run_variables(story, messages)
         image_prompt = self.image_prompt_chain.run(image_prompt_variables)
 
-        story["image_prompt"] = image_prompt
+        story["image_prompt"] = remove_optional_last_period(image_prompt)
 
         return story
 

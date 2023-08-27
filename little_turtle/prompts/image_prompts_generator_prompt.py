@@ -7,7 +7,6 @@ This prompt must be imaginative and descriptive, extrapolating information from 
 Avoid unuseful formulations, since the noun keywords are the most important, so try to limit yourself to the most important concepts.
 Include details like angle, materials, and technique to get a more accurate and desirable result
 In every story, there should be a little turtle in the hat.
-Image prompt should not end with point.
 
 Story example 1:
 {story_example_1}

@@ -8,7 +8,7 @@ from little_turtle.controlles import StoriesController
 from little_turtle.database import Database
 from little_turtle.handlers import TelegramHandlers
 from little_turtle.services import AppConfig, ImageGenerationService
-from little_turtle.stores import StoryStore
+from little_turtle.stores import StoryStore, HistoryStore
 
 
 class Container(containers.DeclarativeContainer):
@@ -19,6 +19,7 @@ class Container(containers.DeclarativeContainer):
 
     image_generation_service = providers.Factory(ImageGenerationService, config=config)
     story_store = providers.Factory(StoryStore, db=db)
+    history_store = providers.Factory(HistoryStore, db=db)
 
     model_name = providers.Callable(lambda config: config.OPENAI_MODEL, config=config)
     openai_api_key = providers.Callable(lambda config: config.OPENAI_API_KEY, config=config)
@@ -40,4 +41,5 @@ class Container(containers.DeclarativeContainer):
         TelegramHandlers,
         config=config,
         stories_controller=stories_controller,
+        history_store=history_store,
     )

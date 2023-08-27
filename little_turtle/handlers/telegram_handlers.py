@@ -1,28 +1,49 @@
 import asyncio
+from enum import Enum
+from typing import Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart, Command
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import Message, URLInputFile, CallbackQuery
+from aiogram.types import Message, URLInputFile, CallbackQuery, InlineKeyboardMarkup
 
 from little_turtle.controlles import StoriesController
 from little_turtle.services import AppConfig
-from little_turtle.stores import Story
+from little_turtle.stores import Story, HistoryStore, HistoryItem
 from little_turtle.utils import story_response, prepare_buttons
 
 
-class ImageCallback(CallbackData, prefix="turtle"):
-    action: str
+class ImageCallback(CallbackData, prefix="turtle_image"):
     button: str
     message_id: str
 
 
+class ForwardAction(str, Enum):
+    SUGGEST_STORY = "suggest_story"
+    IMAGE_PROMPT = "image_prompt"
+    IMAGINE_STORY = "imagine_story"
+
+
+class OriginalMessageType(str, Enum):
+    STORY = "story"
+    IMAGE_PROMPT = "image_prompt"
+    IMAGE = "image"
+
+
+class ForwardCallback(CallbackData, prefix="turtle_forward"):
+    original_message_type: OriginalMessageType
+    action: ForwardAction
+    data: Optional[str]
+
+
 class TelegramHandlers:
+    history_store: HistoryStore
     story_controller: StoriesController
     bot: Bot
 
-    def __init__(self, config: AppConfig, stories_controller: StoriesController):
+    def __init__(self, config: AppConfig, stories_controller: StoriesController, history_store: HistoryStore):
         self.story_controller = stories_controller
+        self.history_store = history_store
 
         self.bot = Bot(config.TELEGRAM_BOT_TOKEN)
         self.dp = Dispatcher()
@@ -51,64 +72,136 @@ class TelegramHandlers:
         async def button_click(query: CallbackQuery, callback_data: ImageCallback):
             await self.button_click_handler(query, callback_data)
 
+        @self.dp.callback_query(ForwardCallback.filter())
+        async def forward_click(query: CallbackQuery, callback_data: ForwardCallback):
+            await self.forward_click_handler(query, callback_data)
+
     @staticmethod
     async def start_handler(message: Message):
         await message.answer("Hello, I am Little Turtle!")
 
     async def story_handler(self, message: Message):
         date = message.reply_to_message.text or message.text.split(' ')[1]
-
-        await self.bot.send_chat_action(message.chat.id, 'typing')
         story = self.story_controller.generate_story(date)
 
-        await message.answer(story_response(story))
+        await self.__send_message(
+            story_response(story),
+            message.chat.id,
+            message.message_id,
+            show_typing=True,
+        )
 
     async def imagine_story_handler(self, message: Message):
         image_prompt = message.reply_to_message.text
 
-        await self.__send_message(
-            'Alright, diving deep into my turtle thoughts to conjure your tale... 🐢🤔✍️',
-            message.chat.id
-        )
-
-        await self.bot.send_chat_action(message.chat.id, 'typing')
-        image = self.story_controller.imagine_story(image_prompt)
-
-        await self.__send_message(
-            'Holding my turtle breath in anticipation of the image... 🐢🖼️🕰️',
-            message.chat.id
-        )
-        await self.__wait_for_message(image['messageId'], message.chat.id)
+        await self.__generate_image(image_prompt, message.chat.id)
 
     async def suggest_story_prompt_handler(self, message: Message):
         text = message.reply_to_message.text
 
-        await self.__send_message(
-            'Getting ready to craft a new visual masterpiece! 🐢🎨 Hold on to your shell!',
-            message.chat.id
-        )
-        await self.bot.send_chat_action(message.chat.id, 'typing')
-
-        story = self.story_controller.suggest_story_prompt(Story(content=text, image_prompt=''))
-        await message.answer(story['image_prompt'])
+        await self.__generate_image_prompt(text, message.chat.id, message.message_id)
 
     async def suggest_story_handler(self, message: Message):
         date = message.reply_to_message.text or message.text.split(' ')[1]
 
+        await self.__generate_story(date, message.chat.id, message.message_id)
+
+    async def button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback):
+        await query.answer(f"You clicked {callback_data.button} button!")
+
+        message = self.story_controller.trigger_button(callback_data.button, callback_data.message_id)
+        await self.__wait_for_message(message['messageId'], query.message.chat.id)
+
+    async def forward_click_handler(self, query: CallbackQuery, callback_data: ForwardCallback):
+        await query.answer("Working on it! 🐢")
+        chat_id = query.message.chat.id
+        message_id = query.message.message_id
+        reply_id = query.message.reply_to_message.message_id
+        original_message_type = callback_data.original_message_type
+
+        match callback_data.action:
+            case ForwardAction.SUGGEST_STORY:
+                await self.__generate_story(callback_data.data, chat_id, message_id)
+
+            case ForwardAction.IMAGE_PROMPT:
+                target_message_id = reply_id \
+                    if original_message_type == OriginalMessageType.IMAGE_PROMPT \
+                    else message_id
+
+                message = self.history_store.get_by_message_id(target_message_id)
+                await self.__generate_image_prompt(message['content'], chat_id, message_id)
+
+            case ForwardAction.IMAGINE_STORY:
+                message = self.history_store.get_by_message_id(message_id)
+                await self.__generate_image(message['content'], chat_id)
+
+    async def __generate_story(self, date: str, chat_id: int, reply_id: int):
         await self.__send_message(
             'Crafting a fresh tale just for you! 🐢📜 Hang tight!',
-            message.chat.id
+            chat_id,
+            skip_message_history=True,
         )
 
         story = self.story_controller.suggest_story(date)
-        await message.answer(story['content'])
+        await self.__send_message(
+            story['content'],
+            chat_id=chat_id,
+            reply_id=reply_id,
+            buttons=prepare_buttons(
+                {
+                    '🔁': ForwardCallback(
+                        original_message_type=OriginalMessageType.STORY,
+                        action=ForwardAction.SUGGEST_STORY,
+                        data=date
+                    ),
+                    '🌠': ForwardCallback(
+                        original_message_type=OriginalMessageType.STORY,
+                        action=ForwardAction.IMAGE_PROMPT,
+                        data=date
+                    ),
+                }
+            )
+        )
 
-    async def button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback):
-        print(callback_data.button, callback_data.message_id)
-        message = self.story_controller.trigger_button(callback_data.button, callback_data.message_id)
-        await query.answer(f"You clicked {callback_data.button} button!")
-        print(message)
-        await self.__wait_for_message(message['messageId'], query.message.chat.id)
+    async def __generate_image_prompt(self, text: str, chat_id: int, reply_id: int):
+        await self.__send_message(
+            'Getting ready to craft a new visual masterpiece! 🐢🎨 Hold on to your shell!',
+            chat_id,
+            skip_message_history=True,
+            show_typing=True,
+        )
+
+        story = self.story_controller.suggest_story_prompt(Story(content=text, image_prompt=''))
+        await self.__send_message(
+            story['image_prompt'],
+            chat_id=chat_id,
+            reply_id=reply_id,
+            buttons=prepare_buttons(
+                {
+                    '🔁': ForwardCallback(
+                        action=ForwardAction.IMAGE_PROMPT,
+                        original_message_type=OriginalMessageType.IMAGE_PROMPT,
+                        data=""
+                    ),
+                    '🎨': ForwardCallback(
+                        action=ForwardAction.IMAGINE_STORY,
+                        original_message_type=OriginalMessageType.IMAGE_PROMPT,
+                        data=""
+                    ),
+                }
+            )
+        )
+
+    async def __generate_image(self, image_prompt: str, chat_id: int):
+        await self.__send_message(
+            'Alright, diving deep into my turtle thoughts to conjure your tale... 🐢🤔✍️',
+            chat_id,
+            skip_message_history=True,
+            show_typing=True,
+        )
+
+        image = self.story_controller.imagine_story(image_prompt)
+        await self.__wait_for_message(image['messageId'], chat_id)
 
     async def __wait_for_message(self, message_id: str, chat_id: int):
         last_message_id = None
@@ -122,45 +215,68 @@ class TelegramHandlers:
             status_message = await self.__send_message(
                 f"Starting to paint our virtual canvas: {image_status['progress']}% complete! 🐢🎨",
                 chat_id,
+                skip_message_history=True,
             )
             last_message_id = status_message.message_id
 
-            if image_status['progress'] == 100:
-                image_url = image_status['response']['imageUrl']
-                buttons = image_status['response']['buttons']
+            if image_status['progress'] != 100:
+                await asyncio.sleep(5)
+                continue
 
-                print(image_status)
+            print(image_status)
+            image_url = image_status['response']['imageUrl']
+            buttons = image_status['response']['buttons']
 
-                reply_markup = prepare_buttons(
-                    dict(
-                        map(
-                            lambda button: (
-                                button,
-                                ImageCallback(
-                                    action="button_click",
-                                    button=button,
-                                    message_id=image_status['response']['buttonMessageId']
-                                )
-                            ),
-                            buttons
-                        )
-                    ),
-                )
+            reply_markup = prepare_buttons(
+                dict(
+                    map(
+                        lambda button: (
+                            button,
+                            ImageCallback(
+                                message_id=image_status['response']['buttonMessageId'],
+                                button=button,
+                            )
+                        ),
+                        buttons
+                    )
+                ),
+            )
 
-                image = URLInputFile(image_url)
-                await self.bot.delete_message(chat_id, last_message_id)
-                await self.bot.send_photo(chat_id, image, reply_markup=reply_markup)
+            image = URLInputFile(image_url)
+            await self.bot.delete_message(chat_id, last_message_id)
+            return await self.bot.send_photo(chat_id, image, reply_markup=reply_markup)
 
-                break
+    async def __send_message(
+            self,
+            message: str,
+            chat_id: int,
+            reply_id: int = None,
+            silent: bool = True,
+            show_typing: bool = False,
+            skip_message_history: bool = False,
+            buttons: InlineKeyboardMarkup = None
+    ) -> Message:
+        if show_typing:
+            await self.bot.send_chat_action(chat_id, 'typing')
 
-            await asyncio.sleep(5)
-
-    async def __send_message(self, message: str, chat_id: int, silent: bool = True):
-        return await self.bot.send_message(
+        message = await self.bot.send_message(
             chat_id,
             message,
-            disable_notification=silent
+            reply_to_message_id=reply_id,
+            disable_notification=silent,
+            reply_markup=buttons
         )
+
+        if not skip_message_history:
+            self.history_store.create(HistoryItem(
+                message_id=message.message_id,
+                user_id=message.from_user.id,
+                chat_id=message.chat.id,
+                created_at=message.date,
+                content=message.text,
+            ))
+
+        return message
 
     async def run(self):
         print("Telegram turtle is all set and eager to assist! 🐢📲 Just send a command!")
