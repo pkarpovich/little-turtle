@@ -24,6 +24,8 @@ class AppConfig:
 
     TNL_API_KEY: str
 
+    DEBUG: bool = False
+
     def __init__(self, env):
         for field in self.__annotations__:
             if not field.isupper():

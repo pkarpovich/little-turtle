@@ -5,6 +5,7 @@ from langchain.chains.base import Chain
 from langchain.schema.language_model import BaseLanguageModel
 
 from little_turtle.prompts import IMAGE_PROMPTS_GENERATOR_PROMPT
+from little_turtle.services import AppConfig
 from little_turtle.stores import Story
 from little_turtle.utils import random_pick_n
 
@@ -20,11 +21,11 @@ class ImagePromptsGeneratorChainVariables(TypedDict):
 class ImagePromptsGeneratorChain:
     llm_chain: Chain = None
 
-    def __init__(self, llm: BaseLanguageModel):
+    def __init__(self, llm: BaseLanguageModel, config: AppConfig):
         self.llm_chain = LLMChain(
             prompt=PromptTemplate.from_template(IMAGE_PROMPTS_GENERATOR_PROMPT),
             llm=llm,
-            verbose=True,
+            verbose=config.DEBUG,
         )
 
     def run(self, variables: ImagePromptsGeneratorChainVariables) -> str:

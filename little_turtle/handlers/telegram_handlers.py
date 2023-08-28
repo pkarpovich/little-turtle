@@ -8,7 +8,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message, URLInputFile, CallbackQuery, InlineKeyboardMarkup
 
 from little_turtle.controlles import StoriesController
-from little_turtle.services import AppConfig
+from little_turtle.services import AppConfig, LoggerService
 from little_turtle.stores import Story, HistoryStore, HistoryItem
 from little_turtle.utils import story_response, prepare_buttons
 
@@ -39,40 +39,53 @@ class ForwardCallback(CallbackData, prefix="turtle_forward"):
 class TelegramHandlers:
     history_store: HistoryStore
     story_controller: StoriesController
+    logger_service: LoggerService
     bot: Bot
 
-    def __init__(self, config: AppConfig, stories_controller: StoriesController, history_store: HistoryStore):
+    def __init__(
+            self,
+            config: AppConfig,
+            stories_controller: StoriesController,
+            history_store: HistoryStore,
+            logger_service: LoggerService,
+    ):
         self.story_controller = stories_controller
         self.history_store = history_store
+        self.logger_service = logger_service
 
         self.bot = Bot(config.TELEGRAM_BOT_TOKEN)
         self.dp = Dispatcher()
 
-        @self.dp.message(CommandStart())
+        self.__on_startup(self.dp)
+
+    def __on_startup(self, dispatcher: Dispatcher):
+        self.logger_service.info("Starting up turtle... 🐢")
+
+        @dispatcher.message(CommandStart())
         async def start(message: Message):
             await self.start_handler(message)
 
-        @self.dp.message(Command("story"))
+        @dispatcher.message(Command("story"))
         async def start(message: Message):
             await self.story_handler(message)
 
-        @self.dp.message(Command("suggest_story_prompt"))
+        @dispatcher.message(Command("suggest_story_prompt"))
         async def suggest_story_prompt(message: Message):
             await self.suggest_story_prompt_handler(message)
 
-        @self.dp.message(Command("imagine_story"))
+        @dispatcher.message(Command("imagine_story"))
         async def imagine_story(message: Message):
             await self.imagine_story_handler(message)
 
-        @self.dp.message(Command("suggest_story"))
+        @dispatcher.message(Command("suggest_story"))
         async def suggest_story(message: Message):
             await self.suggest_story_handler(message)
 
-        @self.dp.callback_query(ImageCallback.filter())
+        @dispatcher.callback_query(ImageCallback.filter())
         async def button_click(query: CallbackQuery, callback_data: ImageCallback):
             await self.button_click_handler(query, callback_data)
 
-        @self.dp.callback_query(ForwardCallback.filter())
+        @dispatcher.callback_query(ForwardCallback.filter())
         async def forward_click(query: CallbackQuery, callback_data: ForwardCallback):
             await self.forward_click_handler(query, callback_data)
 
@@ -119,6 +132,8 @@ class TelegramHandlers:
         reply_id = query.message.reply_to_message.message_id
         original_message_type = callback_data.original_message_type
 
+        print(reply_id, message_id, original_message_type)
+
         match callback_data.action:
             case ForwardAction.SUGGEST_STORY:
                 await self.__generate_story(callback_data.data, chat_id, message_id)
@@ -128,8 +143,13 @@ class TelegramHandlers:
                     if original_message_type == OriginalMessageType.IMAGE_PROMPT \
                     else message_id
 
+                original_message_id = callback_data.data \
+                    if callback_data.data is not "" and original_message_type == OriginalMessageType.IMAGE_PROMPT \
+                    else message_id
+
                 message = self.history_store.get_by_message_id(target_message_id)
-                await self.__generate_image_prompt(message['content'], chat_id, message_id)
+                print(message, original_message_id)
+                await self.__generate_image_prompt(message['content'], chat_id, original_message_id)
 
             case ForwardAction.IMAGINE_STORY:
                 message = self.history_store.get_by_message_id(message_id)
@@ -181,7 +201,7 @@ class TelegramHandlers:
                     '🔁': ForwardCallback(
                         action=ForwardAction.IMAGE_PROMPT,
                         original_message_type=OriginalMessageType.IMAGE_PROMPT,
-                        data=""
+                        data=str(reply_id)
                     ),
                     '🎨': ForwardCallback(
                         action=ForwardAction.IMAGINE_STORY,
@@ -223,7 +243,6 @@ class TelegramHandlers:
                 await asyncio.sleep(5)
                 continue
 
-            print(image_status)
             image_url = image_status['response']['imageUrl']
             buttons = image_status['response']['buttons']
 
@@ -279,5 +298,5 @@ class TelegramHandlers:
         return message
 
     async def run(self):
-        print("Telegram turtle is all set and eager to assist! 🐢📲 Just send a command!")
+        self.logger_service.info("Telegram turtle is all set and eager to assist! 🐢📲 Just send a command!")
         await self.dp.start_polling(self.bot)

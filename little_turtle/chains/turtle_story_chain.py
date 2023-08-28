@@ -5,6 +5,7 @@ from langchain.base_language import BaseLanguageModel
 from langchain.chains.base import Chain
 
 from little_turtle.prompts import TURTLE_STORY_PROMPT_TEMPLATE
+from little_turtle.services import AppConfig
 from little_turtle.stores import Story
 from little_turtle.utils import get_day_of_week, random_pick_n
 
@@ -19,10 +20,11 @@ class TurtleStoryChainVariables(TypedDict):
 class TurtleStoryChain:
     llm_chain: Chain = None
 
-    def __init__(self, llm: BaseLanguageModel):
+    def __init__(self, llm: BaseLanguageModel, config: AppConfig):
         self.llm_chain = LLMChain(
             prompt=PromptTemplate.from_template(TURTLE_STORY_PROMPT_TEMPLATE),
             llm=llm,
+            verbose=config.DEBUG,
         )
 
     def run(self, variables: TurtleStoryChainVariables) -> Story:
