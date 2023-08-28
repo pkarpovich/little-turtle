@@ -19,6 +19,7 @@ class AppConfig:
     TELEGRAM_API_HASH: str
     TELEGRAM_PHONE_NUMBER: str
     TELEGRAM_SESSION_NAME: str = "little_turtle"
+    TELEGRAM_ALLOWED_USERS: list[int]
 
     TURTLE_CHANNEL_ID: str = "young_turtle_in_hat"
 
@@ -39,6 +40,10 @@ class AppConfig:
             try:
                 if var_type == bool:
                     value = self._parse_bool(env.get(field, default_value))
+                elif var_type == list[int]:
+                    value = list(map(lambda item: int(item), self._parse_list(env.get(field, default_value))))
+                elif var_type == list[str]:
+                    value = self._parse_list(env.get(field, default_value))
                 else:
                     value = var_type(env.get(field, default_value))
 
@@ -58,3 +63,15 @@ class AppConfig:
     @staticmethod
     def _parse_bool(val: Union[str, bool]) -> bool:
         return val if type(val) == bool else val.lower() in ['true', 'yes', '1']
+
+    @staticmethod
+    def _parse_list(val: Union[str, list]) -> list:
+        match val:
+            case str():
+                if ',' not in val:
+                    return [val]
+
+                return val.split(',')
+
+            case _:
+                return val

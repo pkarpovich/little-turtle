@@ -50,8 +50,9 @@ class TelegramHandlers:
             logger_service: LoggerService,
     ):
         self.story_controller = stories_controller
-        self.history_store = history_store
         self.logger_service = logger_service
+        self.history_store = history_store
+        self.config = config
 
         self.bot = Bot(config.TELEGRAM_BOT_TOKEN)
         self.dp = Dispatcher()
@@ -61,9 +62,31 @@ class TelegramHandlers:
     def __on_startup(self, dispatcher: Dispatcher):
         self.logger_service.info("Starting up turtle... 🐢")
 
+        @dispatcher.message(lambda message: message.from_user.id not in self.config.TELEGRAM_ALLOWED_USERS)
+        async def handle_disallowed_users(message: Message):
+            self.logger_service.info(
+                "Disallowed user tried to use the bot",
+                user_id=message.from_user.id,
+                user_message=message
+            )
+            await self.__send_message(
+                "Sorry, I don't know you! 🐢🤔",
+                message.chat.id,
+                skip_message_history=True,
+            )
+
         @dispatcher.message(CommandStart())
         async def start(message: Message):
             await self.start_handler(message)
+
+        @dispatcher.message(Command("ping"))
+        async def ping(message: Message):
+            await self.__send_message(
+                "Pong! 🐢🏓",
+                message.chat.id,
+                message.message_id,
+                skip_message_history=True,
+            )
 
         @dispatcher.message(Command("story"))
         async def start(message: Message):
