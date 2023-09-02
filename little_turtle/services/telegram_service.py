@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Union
+
 from telethon import TelegramClient
 
 from little_turtle.services import AppConfig
@@ -26,3 +29,29 @@ class TelegramService:
             messages.append(msg.message)
 
         return messages
+
+    async def send_message(self, chat_id: Union[str, int], message: str, schedule: datetime):
+        await self.client.send_message(
+            chat_id,
+            message,
+            schedule=schedule,
+        )
+
+    async def send_photo(self, chat_id: Union[str, int], photo: str, message: str, schedule: datetime):
+        await self.client.send_file(
+            chat_id,
+            photo,
+            caption=message,
+            schedule=schedule,
+        )
+
+    async def get_chats(self, limit: int) -> list[dict]:
+        chats = []
+
+        async for chat in self.client.iter_dialogs(limit=limit):
+            chats.append({
+                "id": chat.id,
+                "name": chat.name,
+            })
+
+        return chats

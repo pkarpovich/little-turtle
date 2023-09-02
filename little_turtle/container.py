@@ -7,7 +7,7 @@ from little_turtle.chains import TurtleStoryChain, ImagePromptsGeneratorChain
 from little_turtle.controlles import StoriesController
 from little_turtle.database import Database
 from little_turtle.handlers import TelegramHandlers
-from little_turtle.services import AppConfig, ImageGenerationService, LoggerService
+from little_turtle.services import AppConfig, ImageGenerationService, LoggerService, TelegramService
 from little_turtle.stores import StoryStore, HistoryStore
 
 
@@ -19,7 +19,9 @@ class Container(containers.DeclarativeContainer):
 
     db = providers.Callable(lambda database: database.db, database=database)
 
+    telegram_service = providers.Factory(TelegramService, config=config)
     image_generation_service = providers.Factory(ImageGenerationService, config=config, logger_service=logger_service)
+
     story_store = providers.Factory(StoryStore, db=db)
     history_store = providers.Factory(HistoryStore, db=db)
 
