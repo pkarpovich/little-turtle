@@ -1,0 +1,33 @@
+services:
+  story-bot:
+    build: .
+    container_name: story-bot
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_PHONE_NUMBER: ${TELEGRAM_PHONE_NUMBER}
+      TELEGRAM_ALLOWED_USERS: ${TELEGRAM_ALLOWED_USERS}
+      CHAT_IDS_TO_SEND_STORIES: ${CHAT_IDS_TO_SEND_STORIES}
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      TNL_API_KEY: ${TNL_API_KEY}
+    depends_on:
+      - story-store
+
+  story-store:
+    image: mongo:6.0.7
+    expose:
+      - 27017
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+    volumes:
+      - story-store-data:/data/db
+
+volumes:
+  story-store-data:

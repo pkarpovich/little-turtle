@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import Union, BinaryIO
 
@@ -10,8 +11,10 @@ class TelegramService:
     client: TelegramClient = None
 
     def __init__(self, config: AppConfig):
+        session_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.TELEGRAM_SESSION_NAME)
+
         self.client = TelegramClient(
-            config.TELEGRAM_SESSION_NAME,
+            session_path,
             config.TELEGRAM_API_ID,
             config.TELEGRAM_API_HASH
         )
