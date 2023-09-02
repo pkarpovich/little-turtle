@@ -21,9 +21,16 @@ class AppConfig:
     TELEGRAM_SESSION_NAME: str = "little_turtle"
     TELEGRAM_ALLOWED_USERS: list[int]
 
+    CHAT_IDS_TO_SEND_STORIES: list[int]
+
     TURTLE_CHANNEL_ID: str = "young_turtle_in_hat"
 
     TNL_API_KEY: str
+
+    DEFAULT_TZ: int = 3
+    DEFAULT_SCHEDULE_HOUR: int = 6
+    DEFAULT_SCHEDULE_MINUTE: int = 4
+    DEFAULT_SCHEDULE_SECOND: int = 33
 
     DEBUG: bool = False
 

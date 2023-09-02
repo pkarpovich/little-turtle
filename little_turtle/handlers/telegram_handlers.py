@@ -1,6 +1,7 @@
 import asyncio
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Optional
+from typing import Optional, BinaryIO, Union
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart, Command
@@ -8,7 +9,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message, URLInputFile, CallbackQuery, InlineKeyboardMarkup
 
 from little_turtle.controlles import StoriesController
-from little_turtle.services import AppConfig, LoggerService
+from little_turtle.services import AppConfig, LoggerService, TelegramService
 from little_turtle.stores import Story, HistoryStore, HistoryItem
 from little_turtle.utils import story_response, prepare_buttons
 
@@ -48,8 +49,10 @@ class TelegramHandlers:
             stories_controller: StoriesController,
             history_store: HistoryStore,
             logger_service: LoggerService,
+            telegram_service: TelegramService,
     ):
         self.story_controller = stories_controller
+        self.telegram_service = telegram_service
         self.logger_service = logger_service
         self.history_store = history_store
         self.config = config
@@ -104,6 +107,10 @@ class TelegramHandlers:
         async def suggest_story(message: Message):
             await self.suggest_story_handler(message)
 
+        @dispatcher.message(Command("schedule"))
+        async def schedule(message: Message):
+            await self.schedule_handler(message)
+
         @dispatcher.callback_query(ImageCallback.filter())
         async def button_click(query: CallbackQuery, callback_data: ImageCallback):
             await self.button_click_handler(query, callback_data)
@@ -142,6 +149,36 @@ class TelegramHandlers:
 
         await self.__generate_story(date, message.chat.id, message.message_id)
 
+    async def schedule_handler(self, message: Message):
+        photo = await self.__get_file(message.reply_to_message.photo[-1].file_id)
+        text = message.reply_to_message.caption
+
+        date = await self.__prepare_schedule_date(message.text)
+        if not date:
+            await self.__send_message(
+                "Sorry, I don't understand this date! 🐢🤔",
+                message.chat.id,
+                message.message_id,
+                skip_message_history=True,
+            )
+            return
+
+        for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
+            await self.telegram_service.send_photo(
+                chat_id,
+                photo,
+                text,
+                date,
+            )
+            photo.seek(0)
+
+        await self.__send_message(
+            "Alright, I'll send this story to the channels! 🐢📲",
+            message.chat.id,
+            message.message_id,
+            skip_message_history=True,
+        )
+
     async def button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback):
         await query.answer(f"You clicked {callback_data.button} button!")
 
@@ -167,7 +204,7 @@ class TelegramHandlers:
                     else message_id
 
                 original_message_id = callback_data.data \
-                    if callback_data.data is not "" and original_message_type == OriginalMessageType.IMAGE_PROMPT \
+                    if callback_data.data != "" and original_message_type == OriginalMessageType.IMAGE_PROMPT \
                     else message_id
 
                 message = self.history_store.get_by_message_id(target_message_id)
@@ -319,6 +356,29 @@ class TelegramHandlers:
             ))
 
         return message
+
+    async def __get_file(self, file_id: str) -> BinaryIO:
+        file = await self.bot.get_file(file_id)
+        return await self.bot.download_file(file.file_path)
+
+    async def __prepare_schedule_date(self, text: str) -> Union[datetime, None]:
+        try:
+            tz = timezone(timedelta(hours=self.config.DEFAULT_TZ))
+
+            raw_date = text.split(maxsplit=1)[1]
+
+            if not raw_date:
+                return None
+
+            date_obj = datetime.strptime(raw_date, '%d.%m.%Y')
+            return date_obj.replace(
+                hour=self.config.DEFAULT_SCHEDULE_HOUR,
+                minute=self.config.DEFAULT_SCHEDULE_MINUTE,
+                second=self.config.DEFAULT_SCHEDULE_SECOND,
+                tzinfo=tz
+            )
+        except (ValueError, IndexError):
+            return None
 
     async def run(self):
         self.logger_service.info("Telegram turtle is all set and eager to assist! 🐢📲 Just send a command!")

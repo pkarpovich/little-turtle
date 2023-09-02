@@ -45,6 +45,7 @@ class Container(containers.DeclarativeContainer):
         TelegramHandlers,
         config=config,
         stories_controller=stories_controller,
-        history_store=history_store,
+        telegram_service=telegram_service,
         logger_service=logger_service,
+        history_store=history_store,
     )
