@@ -6,7 +6,7 @@ from typing import Optional, BinaryIO, Union
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart, Command
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import Message, URLInputFile, CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import Message, URLInputFile, CallbackQuery, InlineKeyboardMarkup, ErrorEvent
 
 from little_turtle.controlles import StoriesController
 from little_turtle.services import AppConfig, LoggerService, TelegramService
@@ -118,6 +118,15 @@ class TelegramHandlers:
         @dispatcher.callback_query(ForwardCallback.filter())
         async def forward_click(query: CallbackQuery, callback_data: ForwardCallback):
             await self.forward_click_handler(query, callback_data)
+
+        @dispatcher.error()
+        async def error_handler(event: ErrorEvent):
+            await self.__send_message(
+                "Sorry, I'm having trouble processing your request! 🐢🤔",
+                event.update.message.chat.id,
+                skip_message_history=True,
+            )
+            self.logger_service.error("Error while handling update", exception=event.exception)
 
     @staticmethod
     async def start_handler(message: Message):

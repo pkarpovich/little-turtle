@@ -28,3 +28,6 @@ class LoggerService:
 
     def info(self, message: str, **kwargs):
         self.logger.info(message, **kwargs)
+
+    def error(self, message: str, **kwargs):
+        self.logger.error(message, **kwargs)
