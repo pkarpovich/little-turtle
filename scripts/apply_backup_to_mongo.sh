@@ -16,6 +16,8 @@ fi
 export RESTIC_REPOSITORY="$LT_RESTIC_REPO"
 export RESTIC_PASSWORD="$LT_RESTIC_PASS"
 
+mkdir -p "$HOST_DUMP_PATH"
+
 if ! command -v restic &> /dev/null; then
     echo "Restic is not installed. Please install it first."
     exit 1
@@ -42,7 +44,7 @@ CONTAINER_NAME="story-store"
 docker cp "$FULL_PATH" "$CONTAINER_NAME:$CONTAINER_DUMP_PATH"
 
 echo "Applying the MongoDB dump to the container..."
-docker exec -i "$CONTAINER_NAME" mongosh -u "$MONGODB_USERNAME" -p "$MONGODB_PASSWORD" --authenticationDatabase=admin \
+docker exec -i "$CONTAINER_NAME" mongo -u "$MONGODB_USERNAME" -p "$MONGODB_PASSWORD" --authenticationDatabase=admin \
                 --eval "db.getSiblingDB('little_turtle').dropDatabase()"
 docker exec -i "$CONTAINER_NAME" mongorestore --username "$MONGODB_USERNAME" --password "$MONGODB_PASSWORD" \
                 --archive="$CONTAINER_DUMP_PATH" --gzip
