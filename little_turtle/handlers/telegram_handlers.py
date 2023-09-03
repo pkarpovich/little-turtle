@@ -285,8 +285,17 @@ class TelegramHandlers:
 
     async def __wait_for_message(self, message_id: str, chat_id: int):
         last_message_id = None
+        attempts = 0
 
         while True:
+            if attempts > self.config.MAX_IMAGE_GEN_ATTEMPTS:
+                await self.__send_message(
+                    "Sorry, I'm having trouble generating your image! 🐢🤔",
+                    chat_id,
+                    skip_message_history=True,
+                )
+                return
+
             image_status = self.story_controller.get_image_status(message_id)
 
             if last_message_id:
@@ -300,7 +309,8 @@ class TelegramHandlers:
             last_message_id = status_message.message_id
 
             if image_status['progress'] != 100:
-                await asyncio.sleep(5)
+                attempts += 1
+                await asyncio.sleep(self.config.IMAGE_GEN_ATTEMPTS_DELAY)
                 continue
 
             image_url = image_status['response']['imageUrl']

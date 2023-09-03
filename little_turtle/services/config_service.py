@@ -27,6 +27,8 @@ class AppConfig:
 
     TNL_API_KEY: str
 
+    MAX_IMAGE_GEN_ATTEMPTS: int = 15
+    IMAGE_GEN_ATTEMPTS_DELAY: int = 10
     DEFAULT_TZ: int = 3
     DEFAULT_SCHEDULE_HOUR: int = 6
     DEFAULT_SCHEDULE_MINUTE: int = 4
