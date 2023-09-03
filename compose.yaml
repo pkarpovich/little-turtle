@@ -20,7 +20,7 @@ services:
 
   story-store:
     container_name: story-store
-    image: mongo:7.0
+    image: mongo:4.4-bionic
     expose:
       - 27017
     restart: unless-stopped

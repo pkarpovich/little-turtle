@@ -57,9 +57,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
      pip install -r requirements.txt
 
 RUN chown -R appuser:appgroup /app
-RUN chmod -R 664 /app/little_turtle/little_turtle.session
 
 USER appuser
 
 CMD python little_turtle/main.py
-#ENTRYPOINT ["tail", "-f", "/dev/null"]

@@ -22,9 +22,9 @@ services:
 
   story-store:
     container_name: story-store
-    image: mongo:7.0
+    image: mongo:4.4-bionic
     ports:
-      - 27017:27017
+      - 27666:27017
     expose:
       - 27017
     restart: unless-stopped
