@@ -5,12 +5,15 @@ from dotenv import load_dotenv
 
 from little_turtle.container import Container
 from little_turtle.handlers import TelegramHandlers
+from little_turtle.services import ErrorHandlerService
 
 
 @inject
 async def main(
+        error_handler_service: ErrorHandlerService = Provide[Container.error_handler_service],
         telegram_handler: TelegramHandlers = Provide[Container.telegram_handlers],
 ):
+    error_handler_service.start()
     await telegram_handler.run()
 
 

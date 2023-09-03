@@ -32,6 +32,11 @@ class AppConfig:
     DEFAULT_SCHEDULE_MINUTE: int = 4
     DEFAULT_SCHEDULE_SECOND: int = 33
 
+    ERROR_HANDLER_ENABLED: bool = False
+    ERROR_HANDLER_DNS: str = ""
+    ERROR_HANDLER_ENVIRONMENT: str = "development"
+    ERROR_HANDLER_SERVER_NAME: str = "little_turtle_local"
+
     DEBUG: bool = False
 
     def __init__(self, env):
