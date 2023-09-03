@@ -1,0 +1,16 @@
+task:
+  - name: git checkout
+    script: git clone git@github.com:pkarpovich/little-turtle.git ~/little-turtle
+    cond: "[ ! -d ~/little-turtle/.git ]"
+
+  - name: git pull/update
+    script: |
+      cd ~/little-turtle
+      git pull
+
+  - name: pull docker images and restart
+    script: |
+      cd ~/little-turtle
+      docker compose down
+      docker compose pull
+      docker compose -f compose-local.yaml up -d --build
