@@ -19,7 +19,8 @@ services:
       - story-store
 
   story-store:
-    image: mongo:6.0.7
+    container_name: story-store
+    image: mongo:7.0
     expose:
       - 27017
     restart: unless-stopped
