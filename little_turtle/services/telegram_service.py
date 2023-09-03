@@ -16,7 +16,7 @@ class TelegramService:
         self.client = TelegramClient(
             session_path,
             config.TELEGRAM_API_ID,
-            config.TELEGRAM_API_HASH
+            config.TELEGRAM_API_HASH,
         )
 
     async def login(self):
@@ -24,6 +24,7 @@ class TelegramService:
         await self.client.connect()
 
     async def get_messages(self, chat_id: str = None) -> list[str]:
+        await self.ensure_connected()
         messages = []
 
         async for msg in self.client.iter_messages(chat_id):
