@@ -20,6 +20,7 @@ class AppConfig:
     TELEGRAM_PHONE_NUMBER: str
     TELEGRAM_SESSION_NAME: str = "little_turtle"
     TELEGRAM_ALLOWED_USERS: list[int]
+    TELEGRAM_ADMIN_ID: int
 
     CHAT_IDS_TO_SEND_STORIES: list[int]
 
@@ -39,6 +40,7 @@ class AppConfig:
     ERROR_HANDLER_ENVIRONMENT: str = "development"
     ERROR_HANDLER_SERVER_NAME: str = "little_turtle_local"
 
+    APPLICATION_TZ: str = "Europe/Warsaw"
     DEBUG: bool = False
 
     def __init__(self, env):

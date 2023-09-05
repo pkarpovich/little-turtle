@@ -3,10 +3,13 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional, BinaryIO, Union
 
+import pytz
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart, Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message, URLInputFile, CallbackQuery, InlineKeyboardMarkup, ErrorEvent
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from little_turtle.controlles import StoriesController
 from little_turtle.services import AppConfig, LoggerService, TelegramService
@@ -59,6 +62,7 @@ class TelegramHandlers:
 
         self.bot = Bot(config.TELEGRAM_BOT_TOKEN)
         self.dp = Dispatcher()
+        self.scheduler = AsyncIOScheduler()
 
         self.__on_startup(self.dp)
 
@@ -224,12 +228,25 @@ class TelegramHandlers:
                 message = self.history_store.get_by_message_id(message_id)
                 await self.__generate_image(message['content'], chat_id)
 
-    async def __generate_story(self, date: str, chat_id: int, reply_id: int):
-        await self.__send_message(
-            'Crafting a fresh tale just for you! 🐢📜 Hang tight!',
-            chat_id,
-            skip_message_history=True,
-        )
+    async def send_morning_message(self):
+        next_week_date = datetime.now() + timedelta(days=7)
+        formatted_date = next_week_date.strftime('%d.%m.%Y')
+
+        await self.__generate_story(formatted_date, self.config.TELEGRAM_ADMIN_ID, None, True)
+
+    async def __generate_story(
+            self,
+            date: str,
+            chat_id: int,
+            reply_id: Optional[int],
+            skip_status_messages: bool = False
+    ):
+        if not skip_status_messages:
+            await self.__send_message(
+                'Crafting a fresh tale just for you! 🐢📜 Hang tight!',
+                chat_id,
+                skip_message_history=True,
+            )
 
         story = self.story_controller.suggest_story(date)
         await self.__send_message(
@@ -400,5 +417,11 @@ class TelegramHandlers:
             return None
 
     async def run(self):
+        self.scheduler.add_job(
+            self.send_morning_message,
+            CronTrigger(hour=8, minute=0, timezone=pytz.timezone('Europe/Warsaw'))
+        )
+        self.scheduler.start()
+
         self.logger_service.info("Telegram turtle is all set and eager to assist! 🐢📲 Just send a command!")
         await self.dp.start_polling(self.bot)
