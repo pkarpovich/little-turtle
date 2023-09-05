@@ -1,6 +1,6 @@
 services:
   story-bot:
-    build: .
+    image: ghcr.io/pkarpovich/little-turtle:latest
     container_name: story-bot
     restart: unless-stopped
     environment:
