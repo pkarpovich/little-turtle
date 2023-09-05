@@ -10,7 +10,7 @@ packages = [{include = "little_turtle"}]
 python = "^3.11"
 langchain = "^0.0.268"
 python-dotenv = "^1.0.0"
-openai = "^0.27.8"
+openai = "^0.28.0"
 telethon = "^1.29.3"
 pymongo = "^4.4.1"
 dependency-injector = "^4.41.0"
