@@ -216,7 +216,6 @@ class TelegramHandlers:
         await self.__wait_for_message(message['messageId'], query.message.chat.id)
 
     async def forward_click_handler(self, query: CallbackQuery, callback_data: ForwardCallback):
-        raise Exception("Not implemented")
         await query.answer("Working on it! 🐢")
         chat_id = query.message.chat.id
         message_id = query.message.message_id
