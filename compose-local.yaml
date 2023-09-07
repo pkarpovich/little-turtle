@@ -22,6 +22,8 @@ services:
       ERROR_HANDLER_DNS: ${ERROR_HANDLER_DNS}
       ERROR_HANDLER_ENVIRONMENT: ${ERROR_HANDLER_ENVIRONMENT}
       ERROR_HANDLER_SERVER_NAME: ${ERROR_HANDLER_SERVER_NAME}
+    volumes:
+      - ./little_turtle/services/little_turtle.session:/app/little_turtle/services/little_turtle.session
     depends_on:
       - story-store
 

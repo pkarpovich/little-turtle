@@ -12,7 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from little_turtle.controlles import StoriesController
-from little_turtle.services import AppConfig, LoggerService, TelegramService
+from little_turtle.services import AppConfig, LoggerService, TelegramService, ErrorHandlerService
 from little_turtle.stores import Story, HistoryStore, HistoryItem
 from little_turtle.utils import story_response, prepare_buttons
 
@@ -53,7 +53,9 @@ class TelegramHandlers:
             history_store: HistoryStore,
             logger_service: LoggerService,
             telegram_service: TelegramService,
+            error_handler_service: ErrorHandlerService,
     ):
+        self.error_handler_service = error_handler_service
         self.story_controller = stories_controller
         self.telegram_service = telegram_service
         self.logger_service = logger_service
@@ -125,7 +127,8 @@ class TelegramHandlers:
 
         @dispatcher.error()
         async def error_handler(event: ErrorEvent):
-            self.logger_service.error("Error while handling update", exception=event.exception)
+            self.logger_service.info("Error while handling update", exc_info=event.exception)
+            self.error_handler_service.capture_exception(event.exception)
 
             if event.update.callback_query is not None:
                 chat_id = event.update.callback_query.message.chat.id
@@ -213,6 +216,7 @@ class TelegramHandlers:
         await self.__wait_for_message(message['messageId'], query.message.chat.id)
 
     async def forward_click_handler(self, query: CallbackQuery, callback_data: ForwardCallback):
+        raise Exception("Not implemented")
         await query.answer("Working on it! 🐢")
         chat_id = query.message.chat.id
         message_id = query.message.message_id

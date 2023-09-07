@@ -51,6 +51,7 @@ class Container(containers.DeclarativeContainer):
     telegram_handlers = providers.Factory(
         TelegramHandlers,
         config=config,
+        error_handler_service=error_handler_service,
         stories_controller=stories_controller,
         telegram_service=telegram_service,
         logger_service=logger_service,

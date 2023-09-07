@@ -24,3 +24,9 @@ class ErrorHandlerService:
             traces_sample_rate=1.0,
             profiles_sample_rate=1.0,
         )
+
+    def capture_exception(self, exception: Exception):
+        if not self.config.ERROR_HANDLER_ENABLED:
+            return
+
+        sentry_sdk.capture_exception(exception)
