@@ -125,12 +125,20 @@ class TelegramHandlers:
 
         @dispatcher.error()
         async def error_handler(event: ErrorEvent):
+            self.logger_service.error("Error while handling update", exception=event.exception)
+
+            if event.update.callback_query is not None:
+                chat_id = event.update.callback_query.message.chat.id
+            elif event.update.message is not None:
+                chat_id = event.update.message.chat.id
+            else:
+                return
+
             await self.__send_message(
                 "Sorry, I'm having trouble processing your request! 🐢🤔",
-                event.update.message.chat.id,
+                chat_id,
                 skip_message_history=True,
             )
-            self.logger_service.error("Error while handling update", exception=event.exception)
 
     @staticmethod
     async def start_handler(message: Message):
@@ -177,6 +185,12 @@ class TelegramHandlers:
             return
 
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
+            self.logger_service.info(
+                "Sending scheduled story",
+                chat_id_type=type(chat_id),
+                chat_id=chat_id,
+                date=date,
+            )
             await self.telegram_service.send_photo(
                 chat_id,
                 photo,
@@ -202,16 +216,14 @@ class TelegramHandlers:
         await query.answer("Working on it! 🐢")
         chat_id = query.message.chat.id
         message_id = query.message.message_id
-        reply_id = query.message.reply_to_message.message_id
         original_message_type = callback_data.original_message_type
-
-        print(reply_id, message_id, original_message_type)
 
         match callback_data.action:
             case ForwardAction.SUGGEST_STORY:
                 await self.__generate_story(callback_data.data, chat_id, message_id)
 
             case ForwardAction.IMAGE_PROMPT:
+                reply_id = query.message.reply_to_message.message_id
                 target_message_id = reply_id \
                     if original_message_type == OriginalMessageType.IMAGE_PROMPT \
                     else message_id
@@ -221,7 +233,6 @@ class TelegramHandlers:
                     else message_id
 
                 message = self.history_store.get_by_message_id(target_message_id)
-                print(message, original_message_id)
                 await self.__generate_image_prompt(message['content'], chat_id, original_message_id)
 
             case ForwardAction.IMAGINE_STORY:
