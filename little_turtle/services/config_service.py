@@ -22,9 +22,9 @@ class AppConfig:
     TELEGRAM_PHONE_NUMBER: str
     TELEGRAM_SESSION_NAME: str = "little_turtle"
     TELEGRAM_ALLOWED_USERS: list[int]
-    TELEGRAM_ADMIN_ID: int
 
     CHAT_IDS_TO_SEND_STORIES: list[int]
+    USER_IDS_TO_SEND_MORNING_MSG: list[int]
 
     TURTLE_CHANNEL_ID: str = "young_turtle_in_hat"
 

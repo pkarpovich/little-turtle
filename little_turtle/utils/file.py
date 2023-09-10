@@ -11,3 +11,10 @@ def get_image_path(image_path: str) -> str:
         os.makedirs(images_dir)
 
     return os.path.join(images_dir, image_name)
+
+
+def read_file_from_disk(file_name: str) -> bytes:
+    with open(file_name, 'rb') as f:
+        binary_data = f.read()
+
+    return binary_data
