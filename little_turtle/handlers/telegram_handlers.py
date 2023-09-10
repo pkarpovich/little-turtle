@@ -84,7 +84,7 @@ class TelegramHandlers:
         self.logger_service = logger_service
         self.config = config
 
-        redis_client = redis.from_url("redis://localhost:6379/0")
+        redis_client = redis.from_url(config.REDIS_URL)
         storage = RedisStorage(redis_client)
 
         self.bot = Bot(config.TELEGRAM_BOT_TOKEN)

@@ -14,6 +14,8 @@ class AppConfig:
     MONGODB_PASSWORD: str
     MONGODB_DB_NAME: str = "little_turtle"
 
+    REDIS_URL: str = "redis://localhost:6379/0"
+
     TELEGRAM_BOT_TOKEN: str
     TELEGRAM_API_ID: int
     TELEGRAM_API_HASH: str
