@@ -47,7 +47,7 @@ class TelegramService:
             schedule=schedule,
         )
 
-    async def send_photo(self, chat_id: Union[str, int], photo: BinaryIO, message: str, schedule: datetime):
+    async def send_photo(self, chat_id: Union[str, int], photo: BinaryIO, message: str, schedule: datetime = None):
         await self.ensure_connected()
         await self.client.send_file(
             chat_id,

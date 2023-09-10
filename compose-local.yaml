@@ -24,6 +24,7 @@ services:
       ERROR_HANDLER_SERVER_NAME: ${ERROR_HANDLER_SERVER_NAME}
     volumes:
       - ./little_turtle/services/little_turtle.session:/app/little_turtle/services/little_turtle.session
+      - story-images:/app/little_turtle/images
     depends_on:
       - story-store
 
@@ -41,5 +42,12 @@ services:
     volumes:
       - story-store-data:/data/db
 
+  story-cache:
+    container_name: story-cache
+    image: redis:7.0.2-alpine
+    ports:
+      - 6379:6379
+
 volumes:
   story-store-data:
+  story-images:

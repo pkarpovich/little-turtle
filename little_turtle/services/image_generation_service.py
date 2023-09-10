@@ -16,6 +16,7 @@ class ImageStatusResponse(TypedDict):
     buttonMessageId: str
     imageUrls: list[str]
     buttons: list[str]
+    description: str
     imageUrl: str
 
 
