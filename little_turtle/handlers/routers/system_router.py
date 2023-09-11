@@ -2,6 +2,7 @@ from aiogram import Router, Bot
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, ErrorEvent
 
+from little_turtle.constants import error_messages, messages
 from little_turtle.services import LoggerService, AppConfig, ErrorHandlerService
 from .base_router import BaseRouter
 
@@ -35,10 +36,7 @@ class SystemRouter(BaseRouter):
             user_message=message
         )
 
-        await self.send_message(
-            "Sorry, I don't know you! 🐢🤔",
-            message.chat.id,
-        )
+        await self.send_message(error_messages.ERR_UNKNOWN_USER, message.chat.id)
 
     async def error_handler(self, event: ErrorEvent):
         self.logger_service.info("Error while handling update", exc_info=event.exception)
@@ -51,19 +49,10 @@ class SystemRouter(BaseRouter):
         else:
             return
 
-        await self.send_message(
-            "Sorry, I'm having trouble processing your request! 🐢🤔",
-            chat_id
-        )
+        await self.send_message(error_messages.UNHANDLED_ERROR, chat_id)
 
     async def start_handler(self, message: Message):
-        await self.send_message(
-            "Hey there! 🐢👋 I'm a turtle bot! 🐢🤖 I can help you with some turtle stuff! 🐢📲",
-            message.chat.id
-        )
+        await self.send_message(messages.START_REPLY, message.chat.id)
 
     async def handle_ping(self, message: Message):
-        await self.send_message(
-            "Pong! 🐢🏓",
-            message.chat.id,
-        )
+        await self.send_message(messages.PONG_REPLY, message.chat.id)

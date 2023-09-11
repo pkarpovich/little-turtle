@@ -11,7 +11,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, BufferedInputFile, CallbackQuery, URLInputFile
 
-from little_turtle.constants import error_messages
+from little_turtle.constants import error_messages, messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_router import BaseRouter
@@ -84,10 +84,7 @@ class TelegramRouter(BaseRouter):
     async def story_handler(self, _: Message, ctx: BotContext):
         await ctx.state.clear()
         await ctx.state.set_state(FormState.date)
-        await self.send_message(
-            "Alright, what date do you want the story for? 🐢📜 (dd.mm.yyyy)",
-            ctx.chat_id
-        )
+        await self.send_message(messages.ASK_DATE, ctx.chat_id)
 
     async def preview_handler(self, _: Message, ctx: BotContext):
         data = await ctx.state.get_data()
@@ -119,10 +116,7 @@ class TelegramRouter(BaseRouter):
 
     async def cancel_handler(self, _: Message, ctx: BotContext):
         await ctx.state.clear()
-        await self.send_message(
-            "Alright, I'll forget everything! 🐢🤔",
-            ctx.chat_id
-        )
+        await self.send_message(messages.RESET_STORY, ctx.chat_id)
 
     async def story_date_handler(self, message: Message, ctx: BotContext):
         date = message.text
@@ -179,13 +173,13 @@ class TelegramRouter(BaseRouter):
         await self.__schedule_story(date, text, photo, ctx)
 
     async def image_button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback, ctx: BotContext):
-        await query.answer("Working on it! 🐢")
+        await query.answer(messages.ACTION_IN_PROGRESS)
 
         message = self.story_controller.trigger_button(callback_data.button, callback_data.message_id)
         await self.__wait_for_message(message['messageId'], ctx.chat_id)
 
     async def forward_click_handler(self, query: CallbackQuery, callback_data: ForwardCallback, ctx: BotContext):
-        await query.answer("Working on it! 🐢")
+        await query.answer(messages.ACTION_IN_PROGRESS)
         data = await ctx.state.get_data()
 
         match callback_data.action:
@@ -231,10 +225,7 @@ class TelegramRouter(BaseRouter):
 
     async def __generate_story(self, date: str, chat_id: int, skip_status_messages: bool = False):
         if not skip_status_messages:
-            await self.send_message(
-                'Crafting a fresh tale just for you! 🐢📜 Hang tight!',
-                chat_id
-            )
+            await self.send_message(messages.STORY_GENERATION_IN_PROGRESS, chat_id)
 
         story = self.story_controller.suggest_story(date)
         await self.send_message(
@@ -250,11 +241,7 @@ class TelegramRouter(BaseRouter):
         )
 
     async def __generate_image_prompt(self, text: str, chat_id: int):
-        await self.send_message(
-            'Getting ready to craft a new visual masterpiece! 🐢🎨 Hold on to your shell!',
-            chat_id,
-            show_typing=True,
-        )
+        await self.send_message(messages.IMAGE_PROMPT_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
 
         story = self.story_controller.suggest_story_prompt(Story(content=text, image_prompt=''))
         await self.send_message(
@@ -270,11 +257,7 @@ class TelegramRouter(BaseRouter):
         )
 
     async def __generate_image(self, image_prompt: str, chat_id: int):
-        await self.send_message(
-            'Alright, diving deep into my turtle thoughts to conjure your tale... 🐢🤔✍️',
-            chat_id,
-            show_typing=True,
-        )
+        await self.send_message(messages.IMAGE_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
 
         image = self.story_controller.imagine_story(image_prompt)
         await self.__wait_for_message(image['messageId'], chat_id)
@@ -293,7 +276,7 @@ class TelegramRouter(BaseRouter):
                 await self.bot.delete_message(chat_id, last_message_id)
 
             status_message = await self.send_message(
-                f"Starting to paint our virtual canvas: {image_status['progress']}% complete! 🐢🎨",
+                messages.IMAGE_GENERATION_PROGRESS_UPDATE(image_status['progress']),
                 chat_id,
             )
             last_message_id = status_message.message_id
@@ -334,35 +317,23 @@ class TelegramRouter(BaseRouter):
             return False
 
         await ctx.state.update_data(date=date)
-        await self.send_message(
-            "Alright, I'll remember this date! 🐢📆",
-            ctx.chat_id,
-        )
+        await self.send_message(messages.REMEMBER_INPUT_DATE, ctx.chat_id)
 
         return True
 
     async def __set_story(self, story: str, ctx: BotContext):
         await ctx.state.update_data(story=story)
-        await self.send_message(
-            "Alright, I'll remember this story! 🐢📜",
-            ctx.chat_id,
-        )
+        await self.send_message(messages.REMEMBER_INPUT_STORY, ctx.chat_id)
 
     async def __set_image_prompt(self, image_prompt: str, ctx: BotContext):
         await ctx.state.update_data(image_prompt=image_prompt)
-        await self.send_message(
-            "Alright, I'll remember this image prompt! 🐢🎨",
-            ctx.chat_id,
-        )
+        await self.send_message(messages.REMEMBER_INPUT_IMAGE_PROMPT, ctx.chat_id)
 
     async def __set_image(self, file_id: str, ctx: BotContext):
         image_path = await self.__save_file_to_disk(file_id)
 
         await ctx.state.update_data(image=image_path)
-        await self.send_message(
-            "Alright, I'll remember this image! 🐢🖼️",
-            ctx.chat_id,
-        )
+        await self.send_message(messages.REMEMBER_INPUT_IMAGE, ctx.chat_id)
 
     async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, ctx: BotContext):
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
@@ -379,10 +350,7 @@ class TelegramRouter(BaseRouter):
             )
             photo.seek(0)
 
-        await self.send_message(
-            "Alright, I'll send this story to the channels! 🐢📲",
-            ctx.chat_id
-        )
+        await self.send_message(messages.SEND_SCHEDULE_STORY, ctx.chat_id)
 
     async def __get_file(self, file_id: str) -> BinaryIO:
         file = await self.bot.get_file(file_id)
