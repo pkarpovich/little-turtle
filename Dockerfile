@@ -56,6 +56,7 @@ COPY --from=builder /app/requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
      pip install -r requirements.txt
 
+RUN mkdir -p /app/little_turtle/images
 RUN chown -R appuser:appgroup /app
 
 USER appuser
