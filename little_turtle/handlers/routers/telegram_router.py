@@ -11,6 +11,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, BufferedInputFile, CallbackQuery, URLInputFile
 
+from little_turtle.constants import error_messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_router import BaseRouter
@@ -91,38 +92,23 @@ class TelegramRouter(BaseRouter):
     async def preview_handler(self, _: Message, ctx: BotContext):
         data = await ctx.state.get_data()
         if not data:
-            return await self.send_message(
-                "Sorry, I don't have anything to preview! 🐢🤔",
-                ctx.chat_id
-            )
+            return await self.send_message(error_messages.ERR_NO_PREVIEW_DATA, ctx.chat_id)
 
         date = data.get('date')
         if not date or not validate_date(date):
-            return await self.send_message(
-                "Sorry, I don't understand this date! 🐢🤔",
-                ctx.chat_id
-            )
+            return await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, ctx.chat_id)
 
         photo_path = data.get('image')
         if not photo_path:
-            return await self.send_message(
-                "Sorry, I don't have photo for this story! 🐢🤔",
-                ctx.chat_id
-            )
+            return await self.send_message(error_messages.ERR_NO_STORY_PHOTO, ctx.chat_id)
 
         photo = read_file_from_disk(photo_path)
         if not photo:
-            return await self.send_message(
-                "Sorry, I can't recognize story photo! 🐢🤔",
-                ctx.chat_id
-            )
+            return await self.send_message(error_messages.ERR_INVALID_PHOTO, ctx.chat_id)
 
         story = data.get('story')
         if not story:
-            return await self.send_message(
-                "Sorry, I don't have story! 🐢🤔",
-                ctx.chat_id,
-            )
+            return await self.send_message(error_messages.ERR_INVALID_STORY, ctx.chat_id)
 
         await self.bot.send_photo(
             ctx.chat_id,
@@ -160,12 +146,25 @@ class TelegramRouter(BaseRouter):
         await self.__set_date(message.reply_to_message.text, ctx)
 
     async def set_story_handler(self, message: Message, ctx: BotContext):
+        if not message.reply_to_message or not message.reply_to_message.text:
+            return await self.send_message(error_messages.ERR_NO_REPLY_STORY, ctx.chat_id)
+
         await self.__set_story(message.reply_to_message.text, ctx)
 
     async def set_image_prompt_handler(self, message: Message, ctx: BotContext):
+        if not message.reply_to_message or not message.reply_to_message.text:
+            return await self.send_message(error_messages.ERR_NO_REPLY_IMAGE_PROMPT, ctx.chat_id)
+
         await self.__set_image_prompt(message.reply_to_message.text, ctx)
 
     async def set_image_handler(self, message: Message, ctx: BotContext):
+        if (
+                not message.reply_to_message
+                or not message.reply_to_message.photo
+                or not len(message.reply_to_message.photo) == 1
+        ):
+            return await self.send_message(error_messages.ERR_NO_REPLY_IMAGE, ctx.chat_id)
+
         await self.__set_image(message.reply_to_message.photo[-1].file_id, ctx)
 
     async def schedule_handler(self, message: Message, ctx: BotContext):
@@ -174,12 +173,7 @@ class TelegramRouter(BaseRouter):
         raw_date = message.text.split(' ')[-1]
 
         if not raw_date or not validate_date(raw_date):
-            await self.send_message(
-                "Sorry, I don't understand this date! 🐢🤔",
-                message.chat.id,
-                message.message_id
-            )
-            return
+            return await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, message.chat.id, message.message_id)
 
         date = await self.__prepare_schedule_date(raw_date)
         await self.__schedule_story(date, text, photo, ctx)
@@ -291,11 +285,7 @@ class TelegramRouter(BaseRouter):
 
         while True:
             if attempts > self.config.MAX_IMAGE_GEN_ATTEMPTS:
-                await self.send_message(
-                    "Sorry, I'm having trouble generating your image! 🐢🤔",
-                    chat_id,
-                )
-                return
+                return await self.send_message(error_messages.ERR_IMAGE_GENERATION, chat_id)
 
             image_status = self.story_controller.get_image_status(message_id)
 
@@ -321,11 +311,7 @@ class TelegramRouter(BaseRouter):
 
             await self.bot.delete_message(chat_id, last_message_id)
             if len(image_url) == 0 and len(description) > 0:
-                await self.send_message(
-                    f"Sorry, I'm having trouble generating your image! 🐢🤔\n\n{description}",
-                    chat_id,
-                )
-                return
+                return await self.send_message(error_messages.ERR_IMAGE_GENERATION_FULL(description), chat_id)
 
             buttons = list(
                 map(
@@ -344,10 +330,7 @@ class TelegramRouter(BaseRouter):
 
     async def __set_date(self, date: str, ctx: BotContext) -> bool:
         if not validate_date(date):
-            await self.send_message(
-                "Sorry, I don't understand this date! 🐢🤔",
-                ctx.chat_id,
-            )
+            await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, ctx.chat_id)
             return False
 
         await ctx.state.update_data(date=date)
