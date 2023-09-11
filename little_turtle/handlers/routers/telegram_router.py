@@ -90,8 +90,40 @@ class TelegramRouter(BaseRouter):
 
     async def preview_handler(self, _: Message, ctx: BotContext):
         data = await ctx.state.get_data()
+        if not data:
+            return await self.send_message(
+                "Sorry, I don't have anything to preview! 🐢🤔",
+                ctx.chat_id
+            )
+
+        date = data.get('date')
+        if not date or not validate_date(date):
+            return await self.send_message(
+                "Sorry, I don't understand this date! 🐢🤔",
+                ctx.chat_id
+            )
+
         photo_path = data.get('image')
+        if not photo_path:
+            return await self.send_message(
+                "Sorry, I don't have photo for this story! 🐢🤔",
+                ctx.chat_id
+            )
+
         photo = read_file_from_disk(photo_path)
+        if not photo:
+            return await self.send_message(
+                "Sorry, I can't recognize story photo! 🐢🤔",
+                ctx.chat_id
+            )
+
+        story = data.get('story')
+        if not story:
+            return await self.send_message(
+                "Sorry, I don't have story! 🐢🤔",
+                ctx.chat_id,
+            )
+
         await self.bot.send_photo(
             ctx.chat_id,
             BufferedInputFile(photo, filename='image.jpg'),
