@@ -28,21 +28,30 @@ class ImageStatus(TypedDict):
 class ImageGenerationService:
     def __init__(self, config: 'AppConfig', logger_service: 'LoggerService'):
         self.logger_service = logger_service
-        self.tnl = TNL(config.TNL_API_KEY)
+        self.config = config
 
     def imagine(self, text: str) -> ImageRequestStatus:
-        image_request_status = self.tnl.imagine(text)
+        client = self.__get_client()
+
+        image_request_status = client.imagine(text)
         self.logger_service.info("Imagining image", image_request_status=image_request_status, text=text)
         return image_request_status
 
     def get_image(self, message_id: str) -> ImageStatus:
-        image = self.tnl.get_message_and_progress(message_id, 60)
+        client = self.__get_client()
+
+        image = client.get_message_and_progress(message_id, 60)
         self.logger_service.info("Retrieving image status", message_id=message_id, image_status=image)
 
         return image
 
     def trigger_button(self, button: str, message_id: str) -> ImageRequestStatus:
-        image_request_status = self.tnl.button(button, message_id)
+        client = self.__get_client()
+
+        image_request_status = client.button(button, message_id)
         self.logger_service.info("Triggering button", image_request_status=image_request_status, button=button,
                                  message_id=message_id)
         return image_request_status
+
+    def __get_client(self) -> TNL:
+        return TNL(self.config.TNL_API_KEY)
