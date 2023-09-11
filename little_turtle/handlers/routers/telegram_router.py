@@ -16,7 +16,6 @@ from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_router import BaseRouter
 from little_turtle.services import AppConfig, LoggerService, TelegramService
-from little_turtle.stores import Story
 from little_turtle.utils import prepare_buttons, validate_date, get_image_path, read_file_from_disk
 
 
@@ -64,13 +63,13 @@ class TelegramRouter(BaseRouter):
         self.telegram_service = telegram_service
 
     def get_router(self) -> Router:
-        self.router.message(Command("suggest_story_prompt"))(self.suggest_story_prompt_handler)
         self.router.message(Command("suggest_story"))(self.suggest_story_handler)
+        self.router.message(Command("suggest_story_prompt"))(self.suggest_story_prompt_handler)
         self.router.message(Command("imagine_story"))(self.imagine_story_handler)
+        self.router.message(Command("set_date"))(self.set_date_handler)
+        self.router.message(Command("set_story"))(self.set_story_handler)
         self.router.message(Command("set_image_prompt"))(self.set_image_prompt_handler)
         self.router.message(Command("set_image"))(self.set_image_handler)
-        self.router.message(Command("set_story"))(self.set_story_handler)
-        self.router.message(Command("set_date"))(self.set_date_handler)
         self.router.message(Command("story"))(self.story_handler)
         self.router.message(Command("preview"))(self.preview_handler)
         self.router.message(Command("schedule"))(self.schedule_handler)
@@ -128,46 +127,64 @@ class TelegramRouter(BaseRouter):
         await self.__generate_story(date, ctx.chat_id)
 
     async def suggest_story_handler(self, message: Message, ctx: BotContext):
+        if not await self.__validate_story_date(message, ctx.chat_id):
+            return
+
         await self.__generate_story(message.reply_to_message.text, ctx.chat_id)
 
     async def suggest_story_prompt_handler(self, message: Message, ctx: BotContext):
+        if not await self.__validate_story_msg(message, ctx.chat_id):
+            return
+
         await self.__generate_image_prompt(message.reply_to_message.text, ctx.chat_id)
 
     async def imagine_story_handler(self, message: Message, ctx: BotContext):
+        if not await self.__validate_image_prompt_msg(message, ctx.chat_id):
+            return
+
         await self.__generate_image(message.reply_to_message.text, ctx.chat_id)
 
     async def set_date_handler(self, message: Message, ctx: BotContext):
+        if not await self.__validate_story_date(message, ctx.chat_id):
+            return
+
         await self.__set_date(message.reply_to_message.text, ctx)
 
     async def set_story_handler(self, message: Message, ctx: BotContext):
-        if not message.reply_to_message or not message.reply_to_message.text:
-            return await self.send_message(error_messages.ERR_NO_REPLY_STORY, ctx.chat_id)
+        if not await self.__validate_story_msg(message, ctx.chat_id):
+            return
 
         await self.__set_story(message.reply_to_message.text, ctx)
 
     async def set_image_prompt_handler(self, message: Message, ctx: BotContext):
-        if not message.reply_to_message or not message.reply_to_message.text:
-            return await self.send_message(error_messages.ERR_NO_REPLY_IMAGE_PROMPT, ctx.chat_id)
+        if not await self.__validate_image_prompt_msg(message, ctx.chat_id):
+            return
 
         await self.__set_image_prompt(message.reply_to_message.text, ctx)
 
     async def set_image_handler(self, message: Message, ctx: BotContext):
-        if (
-                not message.reply_to_message
-                or not message.reply_to_message.photo
-                or not len(message.reply_to_message.photo) == 1
-        ):
-            return await self.send_message(error_messages.ERR_NO_REPLY_IMAGE, ctx.chat_id)
+        if not await self.__validate_image_msg(message, ctx.chat_id):
+            return
 
         await self.__set_image(message.reply_to_message.photo[-1].file_id, ctx)
 
     async def schedule_handler(self, message: Message, ctx: BotContext):
-        photo = await self.__get_file(message.reply_to_message.photo[-1].file_id)
-        text = message.reply_to_message.caption
         raw_date = message.text.split(' ')[-1]
 
         if not raw_date or not validate_date(raw_date):
-            return await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, message.chat.id, message.message_id)
+            return await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, message.chat.id)
+
+        if not message.reply_to_message or not message.reply_to_message.caption:
+            return await self.send_message(error_messages.ERR_INVALID_STORY, message.chat.id)
+        text = message.reply_to_message.caption
+
+        if (
+                not message.reply_to_message
+                or not message.reply_to_message.photo
+                or not len(message.reply_to_message.photo) > 0
+        ):
+            return await self.send_message(error_messages.ERR_NO_STORY_PHOTO, message.chat.id)
+        photo = await self.__get_file(message.reply_to_message.photo[-1].file_id)
 
         date = await self.__prepare_schedule_date(raw_date)
         await self.__schedule_story(date, text, photo, ctx)
@@ -224,12 +241,15 @@ class TelegramRouter(BaseRouter):
             await self.__generate_story(formatted_date, chat_id, True)
 
     async def __generate_story(self, date: str, chat_id: int, skip_status_messages: bool = False):
+        if not validate_date(date):
+            return await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, chat_id)
+
         if not skip_status_messages:
             await self.send_message(messages.STORY_GENERATION_IN_PROGRESS, chat_id)
 
-        story = self.story_controller.suggest_story(date)
+        content = self.story_controller.suggest_story(date)
         await self.send_message(
-            story['content'],
+            content,
             chat_id=chat_id,
             buttons=prepare_buttons(
                 {
@@ -243,9 +263,9 @@ class TelegramRouter(BaseRouter):
     async def __generate_image_prompt(self, text: str, chat_id: int):
         await self.send_message(messages.IMAGE_PROMPT_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
 
-        story = self.story_controller.suggest_story_prompt(Story(content=text, image_prompt=''))
+        image_prompt = self.story_controller.suggest_story_prompt(text)
         await self.send_message(
-            story['image_prompt'],
+            image_prompt,
             chat_id=chat_id,
             buttons=prepare_buttons(
                 {
@@ -376,3 +396,35 @@ class TelegramRouter(BaseRouter):
             )
         except (ValueError, IndexError):
             return None
+
+    async def __validate_story_date(self, message: Message, chat_id: int) -> bool:
+        if not message.reply_to_message or not message.reply_to_message.text:
+            await self.send_message(error_messages.ERR_NO_REPLY_DATE, chat_id)
+            return False
+
+        return True
+
+    async def __validate_story_msg(self, message: Message, chat_id: int) -> bool:
+        if not message.reply_to_message or not message.reply_to_message.text:
+            await self.send_message(error_messages.ERR_NO_REPLY_STORY, chat_id)
+            return False
+
+        return True
+
+    async def __validate_image_prompt_msg(self, message: Message, chat_id: int) -> bool:
+        if not message.reply_to_message or not message.reply_to_message.text:
+            await self.send_message(error_messages.ERR_NO_REPLY_IMAGE_PROMPT, chat_id)
+            return False
+
+        return True
+
+    async def __validate_image_msg(self, message: Message, chat_id: int) -> bool:
+        if (
+                not message.reply_to_message
+                or not message.reply_to_message.photo
+                or not len(message.reply_to_message.photo) > 1
+        ):
+            await self.send_message(error_messages.ERR_NO_REPLY_IMAGE, chat_id)
+            return False
+
+        return True

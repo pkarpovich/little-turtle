@@ -32,7 +32,7 @@ class ImagePromptsGeneratorChain:
         return self.llm_chain.run(variables)
 
     @staticmethod
-    def enrich_run_variables(new_story: Story, stories: List[Story]) -> ImagePromptsGeneratorChainVariables:
+    def enrich_run_variables(content: str, stories: List[Story]) -> ImagePromptsGeneratorChainVariables:
         picked_stories = random_pick_n(stories, 2)
 
         return ImagePromptsGeneratorChainVariables(
@@ -40,5 +40,5 @@ class ImagePromptsGeneratorChain:
             prompt_example_2=picked_stories[1]["image_prompt"],
             story_example_1=picked_stories[0]["content"],
             story_example_2=picked_stories[1]["content"],
-            new_story=new_story["content"],
+            new_story=content,
         )

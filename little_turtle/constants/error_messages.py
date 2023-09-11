@@ -1,3 +1,4 @@
+ERR_NO_REPLY_DATE = "Please, reply to the text message with the date! 🐢🤔"
 ERR_NO_REPLY_STORY = "Please, reply to the text message with the story! 🐢🤔"
 ERR_NO_REPLY_IMAGE_PROMPT = "Please, reply to the text message with the image prompt! 🐢🤔"
 ERR_NO_REPLY_IMAGE = "Please, reply to the image message! 🐢🤔"

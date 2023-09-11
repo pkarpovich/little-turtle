@@ -9,6 +9,8 @@ class Story(TypedDict):
     _id: NotRequired[ObjectId]
     content: str
     image_prompt: str
+    date: str
+    photo_path: str
 
 
 class StoryStore:
