@@ -15,6 +15,7 @@ class AppConfig:
     MONGODB_DB_NAME: str = "little_turtle"
 
     REDIS_URL: str = "redis://localhost:6379/0"
+    BASE_IMAGE_FOLDER: str = "/app/little_turtle/images"
 
     TELEGRAM_BOT_TOKEN: str
     TELEGRAM_API_ID: int

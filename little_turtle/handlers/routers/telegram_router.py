@@ -378,7 +378,7 @@ class TelegramRouter(BaseRouter):
 
     async def __save_file_to_disk(self, file_id: str) -> str:
         file = await self.bot.get_file(file_id)
-        os_path = get_image_path(file.file_path)
+        os_path = get_image_path(self.config.BASE_IMAGE_FOLDER, file.file_path)
         await self.bot.download_file(file.file_path, os_path)
 
         return os_path

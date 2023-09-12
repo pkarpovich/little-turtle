@@ -1,16 +1,13 @@
 import os
 
 
-def get_image_path(image_path: str) -> str:
+def get_image_path(base_image_dir: str, image_path: str) -> str:
     image_name = os.path.basename(image_path)
-    curr_dir = os.getcwd()
-    parent_dir = os.path.dirname(curr_dir)
-    images_dir = os.path.join(parent_dir, "images")
 
-    if not os.path.exists(images_dir):
-        os.makedirs(images_dir)
+    if not os.path.exists(base_image_dir):
+        os.makedirs(base_image_dir)
 
-    return os.path.join(images_dir, image_name)
+    return os.path.join(base_image_dir, image_name)
 
 
 def read_file_from_disk(file_name: str) -> bytes:
