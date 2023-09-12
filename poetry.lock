@@ -1480,12 +1480,12 @@ typing = ["mypy", "rich", "twisted"]
 
 [[package]]
 name = "telethon"
-version = "1.30.0"
+version = "1.30.2"
 description = "Full-featured Telegram client library for Python 3"
 optional = false
 python-versions = ">=3.5"
 files = [
-    {file = "Telethon-1.30.0.tar.gz", hash = "sha256:56ae6f3b804ea1956454e2bd805231b3a19a8c7c27bd496b32ded1f7ed45f282"},
+    {file = "Telethon-1.30.2.tar.gz", hash = "sha256:69caa5452474936b2e1f6525d0d7e040278f5b7a4ef8e13911b607c5b8762f9a"},
 ]
 
 [package.dependencies]
@@ -1690,4 +1690,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "6b7accb4d9fe5d81ee10544826fc0e13196b2608819086ff9ee4f25b45e554db"
+content-hash = "fe02530b70ea822cd31549464aaf2603ea166cfa7a48c453158f29bf9845bd58"
