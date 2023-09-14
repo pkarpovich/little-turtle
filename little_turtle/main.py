@@ -18,6 +18,7 @@ async def main(
 
 
 if __name__ == "__main__":
+    print('cache test')
     load_dotenv()
 
     container = Container()
