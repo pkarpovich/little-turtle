@@ -5,15 +5,18 @@ ENV \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    POETRY_VERSION=1.5.1 \
+    POETRY_VERSION=1.6.1 \
     POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_VENV=/opt/poetry-venv \
+    POETRY_VIRTUALENVS_CREATE=false \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache \
-    PYTHONWARNINGS="ignore::DeprecationWarning"
+    PYTHONWARNINGS="ignore::DeprecationWarning" \
+    VENV_PATH="/opt/venv" \
+    PATH="/opt/venv/bin:$PATH"
 
-RUN set -ex \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/root/.cache/pip \
+    set -ex \
     # Create a non-root user
     && addgroup --system --gid 1001 appgroup \
     && adduser --system --uid 1001 --gid 1001 --no-create-home appuser \
@@ -32,6 +35,8 @@ RUN set -ex \
 
 ENV LANG ru_RU.UTF-8
 ENV LC_ALL ru_RU.UTF-8
+RUN python -m venv /opt/venv
+
 
 FROM base as builder
 
@@ -39,9 +44,7 @@ RUN pip install poetry==${POETRY_VERSION}
 
 WORKDIR /app
 COPY ./pyproject.toml ./poetry.lock ./
-RUN poetry config virtualenvs.create false
 RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-dev --no-root
-RUN poetry export -f requirements.txt --output requirements.txt
 
 
 FROM base as runtime
@@ -50,11 +53,8 @@ ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 WORKDIR /app
 
+COPY --from=builder /opt/venv/ /opt/venv/
 COPY . .
-COPY --from=builder /app/requirements.txt ./
-
-RUN --mount=type=cache,target=/root/.cache/pip \
-     pip install -r requirements.txt
 
 RUN mkdir -p /app/little_turtle/images
 RUN chown -R appuser:appgroup /app
