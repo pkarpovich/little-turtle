@@ -24,9 +24,7 @@ class StoriesController:
         return self.image_generation_service.get_image(message_id)
 
     def suggest_story_prompt(self, story_content: str) -> str:
-        messages = self.__get_messages_for_story()
-
-        image_prompt_variables = ImagePromptsGeneratorChain.enrich_run_variables(story_content, messages)
+        image_prompt_variables = self.image_prompt_chain.enrich_run_variables(story_content)
         image_prompt = self.image_prompt_chain.run(image_prompt_variables)
 
         return remove_optional_last_period(image_prompt)
