@@ -74,6 +74,7 @@ class TelegramRouter(BaseRouter):
         self.router.message(Command("set_story"))(self.set_story_handler)
         self.router.message(Command("set_image_prompt"))(self.set_image_prompt_handler)
         self.router.message(Command("set_image"))(self.set_image_handler)
+        self.router.message(Command("add_target_topic"))(self.add_target_topic_handler)
         self.router.message(Command("story"))(self.story_handler)
         self.router.message(Command("preview"))(self.preview_handler)
         self.router.message(Command("schedule"))(self.schedule_handler)
@@ -191,6 +192,12 @@ class TelegramRouter(BaseRouter):
             return
 
         await self.__set_image(message.reply_to_message.photo[-1].file_id, ctx)
+
+    async def add_target_topic_handler(self, message: Message, ctx: BotContext):
+        if not await self.__validate_story_topic_msg(message, ctx.chat_id):
+            return
+
+        await self.__add_target_topic(message.reply_to_message.text, ctx)
 
     async def schedule_handler(self, message: Message, ctx: BotContext):
         raw_date = message.text.split(' ')[-1]
@@ -412,7 +419,7 @@ class TelegramRouter(BaseRouter):
         target_topics.append(target_topic)
 
         await ctx.state.update_data(target_topics=target_topics)
-        await self.send_message(messages.REMEMBER_INPUT_STORIES_SUMMARY, ctx.chat_id)
+        await self.send_message(messages.REMEMBER_TARGET_TOPIC, ctx.chat_id)
 
     async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, ctx: BotContext):
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
@@ -484,6 +491,13 @@ class TelegramRouter(BaseRouter):
                 or not len(message.reply_to_message.photo) > 1
         ):
             await self.send_message(error_messages.ERR_NO_REPLY_IMAGE, chat_id)
+            return False
+
+        return True
+
+    async def __validate_story_topic_msg(self, message: Message, chat_id: int) -> bool:
+        if not message.reply_to_message or not message.reply_to_message.text:
+            await self.send_message(error_messages.ERR_NO_REPLY_STORY_TOPIC, chat_id)
             return False
 
         return True
