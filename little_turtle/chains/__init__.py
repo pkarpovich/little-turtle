@@ -1,3 +1,4 @@
 from .image_prompts_generator_chain import ImagePromptsGeneratorChain
+from .story_reviewer_chain import StoryReviewerChain
 from .story_summarization_chain import StorySummarizationChain
 from .turtle_story_chain import TurtleStoryChain

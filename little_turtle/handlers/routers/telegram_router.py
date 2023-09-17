@@ -276,6 +276,10 @@ class TelegramRouter(BaseRouter):
             chat_id=ctx.chat_id,
             buttons=prepare_buttons({'📌': ForwardCallback(action=ForwardAction.ADD_EVENT_SUMMARY)})
         )
+        await self.send_message(
+            story_resp['review'],
+            chat_id=ctx.chat_id,
+        )
 
     async def __generate_image_prompt(self, text: str, chat_id: int):
         await self.send_message(messages.IMAGE_PROMPT_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
@@ -325,7 +329,7 @@ class TelegramRouter(BaseRouter):
 
             message_id = image_status['response']['buttonMessageId']
             image_url = image_status['response']['imageUrl']
-            buttons = image_status['response']['buttons']
+            raw_buttons = image_status['response']['buttons']
             description = image_status['response']['description']
             image_name = os.path.basename(urlparse(image_url).path)
 
@@ -339,7 +343,7 @@ class TelegramRouter(BaseRouter):
                         button,
                         ImageCallback(message_id=message_id, button=button)
                     ),
-                    buttons
+                    raw_buttons
                 )
             )
             buttons.append(('🎯', ForwardCallback(action=ForwardAction.SET_IMAGE)))
