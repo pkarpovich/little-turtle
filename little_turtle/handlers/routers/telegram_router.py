@@ -16,7 +16,7 @@ from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_router import BaseRouter
 from little_turtle.services import AppConfig, LoggerService, TelegramService
-from little_turtle.utils import prepare_buttons, validate_date, get_image_path, read_file_from_disk
+from little_turtle.utils import prepare_buttons, validate_date, get_image_path, read_file_from_disk, pretty_print_json
 
 
 class ImageCallback(CallbackData, prefix="turtle_image"):
@@ -77,6 +77,7 @@ class TelegramRouter(BaseRouter):
         self.router.message(Command("story"))(self.story_handler)
         self.router.message(Command("preview"))(self.preview_handler)
         self.router.message(Command("schedule"))(self.schedule_handler)
+        self.router.message(Command("state"))(self.state_handler)
         self.router.message(Command("cancel"))(self.cancel_handler)
         self.router.message(FormState.date)(self.story_date_handler)
         self.router.callback_query(ForwardCallback.filter())(self.forward_click_handler)
@@ -124,6 +125,16 @@ class TelegramRouter(BaseRouter):
             BufferedInputFile(photo, filename='image.jpg'),
             caption=data.get('story'),
             reply_markup=prepare_buttons({'⏰': ForwardCallback(action=ForwardAction.SCHEDULE)})
+        )
+
+    async def state_handler(self, _: Message, ctx: BotContext):
+        data = await ctx.state.get_data()
+        if not data:
+            return await self.send_message(messages.NO_STATE, ctx.chat_id)
+
+        await self.send_message(
+            pretty_print_json(data),
+            ctx.chat_id
         )
 
     async def cancel_handler(self, _: Message, ctx: BotContext):
@@ -238,7 +249,7 @@ class TelegramRouter(BaseRouter):
                 await self.__set_stories_summary(query.message.text, ctx)
 
             case ForwardAction.TARGET_TOPIC:
-                pass
+                await self.__add_target_topic(query.message.text, ctx)
 
             case ForwardAction.SCHEDULE:
                 photo = await self.__get_file(query.message.photo[-1].file_id)
