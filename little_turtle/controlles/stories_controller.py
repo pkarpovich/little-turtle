@@ -50,9 +50,9 @@ class StoriesController:
 
         return remove_optional_last_period(image_prompt)
 
-    def suggest_story(self, date: str, stories_summary: List[str]) -> StoryResponse:
+    def suggest_story(self, date: str, stories_summary: List[str], target_topics: List[str]) -> StoryResponse:
         messages = self.__get_messages_for_story()
-        story_variables = self.story_chain.enrich_run_variables(date, messages, stories_summary)
+        story_variables = self.story_chain.enrich_run_variables(date, messages, target_topics, stories_summary)
 
         sequential_chain = SequentialChain(
             chains=[
@@ -60,7 +60,7 @@ class StoriesController:
                 self.story_summarization_chain.get_chain(),
                 self.story_reviewer_chain.get_chain(),
             ],
-            input_variables=['date', 'message_examples', 'stories_summary', 'language'],
+            input_variables=['date', 'message_examples', 'stories_summary', 'target_topics', 'language'],
             output_variables=['story', 'story_event_summary', 'review'],
             verbose=self.config.DEBUG,
         )

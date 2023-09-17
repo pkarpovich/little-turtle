@@ -27,6 +27,13 @@ Example {{ loop.index }}:
 {% endfor %}
 {% endif %}
 
+{% if target_topics|length > 0 %}
+The only allowed topics for generation are:
+{% for topic in target_topics %}
+{{ topic }}
+{% endfor %}
+{% endif %}
+
 {% if stories_summary|length > 0 %}
 Forbidden topics:
 {% for story in stories_summary %}

@@ -11,5 +11,6 @@ REMEMBER_INPUT_IMAGE_PROMPT = "Alright, I'll remember this image prompt! 🐢�
 REMEMBER_INPUT_IMAGE = "Alright, I'll remember this image! 🐢🖼️"
 SEND_SCHEDULE_STORY = "Alright, I'll send this story to the channels! 🐢📲"
 REMEMBER_INPUT_STORIES_SUMMARY = "Alright, I'll add this event to the list of forbidden topics! 🐢🛑"
+REMEMBER_TARGET_TOPIC = "Alright, I'll use this topic in the next story! 🐢📝"
 START_REPLY = "Hey there! 🐢👋 I'm a turtle bot! 🐢🤖 I can help you with some turtle stuff! 🐢📲"
 PONG_REPLY = "Pong! 🐢🏓"

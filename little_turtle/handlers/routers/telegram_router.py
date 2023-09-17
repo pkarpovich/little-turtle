@@ -34,6 +34,7 @@ class ForwardAction(str, Enum):
     SET_IMAGE = "set_image"
     SCHEDULE = "schedule"
     ADD_EVENT_SUMMARY = "add_event_summary"
+    TARGET_TOPIC = "target_topic"
 
 
 class ForwardCallback(CallbackData, prefix="turtle_forward"):
@@ -46,6 +47,7 @@ class FormState(StatesGroup):
     image_prompt = State()
     image = State()
     stories_summary = State()
+    target_topics = State()
 
 
 class TelegramRouter(BaseRouter):
@@ -235,6 +237,9 @@ class TelegramRouter(BaseRouter):
             case ForwardAction.ADD_EVENT_SUMMARY:
                 await self.__set_stories_summary(query.message.text, ctx)
 
+            case ForwardAction.TARGET_TOPIC:
+                pass
+
             case ForwardAction.SCHEDULE:
                 photo = await self.__get_file(query.message.photo[-1].file_id)
                 text = data.get('story')
@@ -258,8 +263,9 @@ class TelegramRouter(BaseRouter):
 
         data = await ctx.state.get_data()
         stories_summary = data.get('stories_summary', list())
+        target_topics = data.get('target_topics', list())
 
-        story_resp = self.story_controller.suggest_story(date, stories_summary)
+        story_resp = self.story_controller.suggest_story(date, stories_summary, target_topics)
         await self.send_message(
             story_resp['story'],
             chat_id=ctx.chat_id,
@@ -274,7 +280,10 @@ class TelegramRouter(BaseRouter):
         await self.send_message(
             story_resp['story_event_summary'],
             chat_id=ctx.chat_id,
-            buttons=prepare_buttons({'📌': ForwardCallback(action=ForwardAction.ADD_EVENT_SUMMARY)})
+            buttons=prepare_buttons({
+                '🟩': ForwardCallback(action=ForwardAction.TARGET_TOPIC),
+                '🛑': ForwardCallback(action=ForwardAction.ADD_EVENT_SUMMARY),
+            })
         )
         await self.send_message(
             story_resp['review'],
@@ -383,6 +392,15 @@ class TelegramRouter(BaseRouter):
         summary.append(stories_summary)
 
         await ctx.state.update_data(stories_summary=summary)
+        await self.send_message(messages.REMEMBER_INPUT_STORIES_SUMMARY, ctx.chat_id)
+
+    async def __add_target_topic(self, target_topic: str, ctx: BotContext):
+        data = await ctx.state.get_data()
+
+        target_topics: [str] = data.get('target_topics') or list()
+        target_topics.append(target_topic)
+
+        await ctx.state.update_data(target_topics=target_topics)
         await self.send_message(messages.REMEMBER_INPUT_STORIES_SUMMARY, ctx.chat_id)
 
     async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, ctx: BotContext):
