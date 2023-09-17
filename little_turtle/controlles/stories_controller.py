@@ -51,7 +51,7 @@ class StoriesController:
                 self.story_chain.get_chain(),
                 self.story_summarization_chain.get_chain(),
             ],
-            input_variables=['date', 'message_example_1', 'message_example_2', 'message_example_3', 'stories_summary'],
+            input_variables=['date', 'message_examples', 'stories_summary'],
             output_variables=['story', 'story_event_summary'],
             verbose=self.config.DEBUG,
         )

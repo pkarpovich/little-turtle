@@ -12,15 +12,13 @@ TURTLE_STORY_PROMPT_TEMPLATE = """\
 
 Напиши сообщение для следующего дня {{date}}
 
+{% if message_examples|length > 0 %}
 Примеры прошлых сообщений от черепашки:
-Пример 1:
-{{message_example_1}}
-
-Пример 2:
-{{message_example_2}}
-
-Пример 3:
-{{message_example_3}}
+{% for message in message_examples %}
+Пример {{ loop.index }}:
+{{ message }}
+{% endfor %}
+{% endif %}
 
 {% if stories_summary|length > 0 %}
 Нельзя писать истории про следующие темы:

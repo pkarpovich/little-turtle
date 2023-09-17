@@ -11,10 +11,8 @@ from little_turtle.utils import get_day_of_week, random_pick_n
 
 class TurtleStoryChainVariables(TypedDict):
     date: str
-    message_example_1: str
-    message_example_2: str
-    message_example_3: str
     stories_summary: List[str]
+    message_examples: List[str]
 
 
 class TurtleStoryChain:
@@ -35,11 +33,10 @@ class TurtleStoryChain:
     @staticmethod
     def enrich_run_variables(date: str, stories: List[Story], stories_summary: List[str]) -> TurtleStoryChainVariables:
         picked_messages = random_pick_n(stories, 3)
+        message_examples = [message["content"] for message in picked_messages]
 
         return TurtleStoryChainVariables(
-            date=f"{date} ({get_day_of_week(date)})",
-            message_example_1=picked_messages[0]["content"],
-            message_example_2=picked_messages[1]["content"],
-            message_example_3=picked_messages[2]["content"],
             stories_summary=stories_summary,
+            message_examples=message_examples,
+            date=f"{date} ({get_day_of_week(date)})",
         )
