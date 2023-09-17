@@ -1,2 +1,3 @@
 from .image_prompts_generator_prompt import IMAGE_PROMPTS_GENERATOR_PROMPT
+from .story_summarization_prompt import STORY_SUMMARIZATION_PROMPT_TEMPLATE
 from .turtle_story_prompt import TURTLE_STORY_PROMPT_TEMPLATE

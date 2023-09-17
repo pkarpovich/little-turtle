@@ -1,21 +1,34 @@
-from little_turtle.chains import TurtleStoryChain, ImagePromptsGeneratorChain
-from little_turtle.services import ImageGenerationService, ImageStatus, ImageRequestStatus
+from typing import TypedDict, List
+
+from langchain.chains import SequentialChain
+
+from little_turtle.chains import TurtleStoryChain, ImagePromptsGeneratorChain, StorySummarizationChain
+from little_turtle.services import ImageGenerationService, ImageStatus, ImageRequestStatus, AppConfig
 from little_turtle.stores import Story, StoryStore
 from little_turtle.utils import remove_optional_last_period
+
+
+class StoryResponse(TypedDict):
+    story: str
+    story_event_summary: str
 
 
 class StoriesController:
     def __init__(
             self,
+            config: AppConfig,
             story_store: StoryStore,
             story_chain: TurtleStoryChain,
             image_prompt_chain: ImagePromptsGeneratorChain,
-            image_generation_service: ImageGenerationService
+            image_generation_service: ImageGenerationService,
+            story_summarization_chain: StorySummarizationChain,
     ):
+        self.config = config
         self.story_store = story_store
         self.story_chain = story_chain
         self.image_prompt_chain = image_prompt_chain
         self.image_generation_service = image_generation_service
+        self.story_summarization_chain = story_summarization_chain
 
     def imagine_story(self, image_prompt: str) -> ImageRequestStatus:
         return self.image_generation_service.imagine(image_prompt)
@@ -29,13 +42,20 @@ class StoriesController:
 
         return remove_optional_last_period(image_prompt)
 
-    def suggest_story(self, date) -> str:
+    def suggest_story(self, date: str, stories_summary: List[str]) -> StoryResponse:
         messages = self.__get_messages_for_story()
+        story_variables = TurtleStoryChain.enrich_run_variables(date, messages, stories_summary)
 
-        story_variables = TurtleStoryChain.enrich_run_variables(date, messages)
-        new_story = self.story_chain.run(story_variables)
-
-        return new_story["content"]
+        sequential_chain = SequentialChain(
+            chains=[
+                self.story_chain.get_chain(),
+                self.story_summarization_chain.get_chain(),
+            ],
+            input_variables=['date', 'message_example_1', 'message_example_2', 'message_example_3', 'stories_summary'],
+            output_variables=['story', 'story_event_summary'],
+            verbose=self.config.DEBUG,
+        )
+        return sequential_chain(story_variables)
 
     def trigger_button(self, button: str, message_id: str) -> ImageRequestStatus:
         return self.image_generation_service.trigger_button(button, message_id)

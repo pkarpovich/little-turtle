@@ -10,15 +10,22 @@ TURTLE_STORY_PROMPT_TEMPLATE = """\
 
 Структура сообщения должна быть уникальна. Ты можешь использовать части сообщения в разном порядке
 
-Напиши сообщение для следующего дня {date}
+Напиши сообщение для следующего дня {{date}}
 
 Примеры прошлых сообщений от черепашки:
 Пример 1:
-{message_example_1}
+{{message_example_1}}
 
 Пример 2:
-{message_example_2}
+{{message_example_2}}
 
 Пример 3:
-{message_example_3}
+{{message_example_3}}
+
+{% if stories_summary|length > 0 %}
+Нельзя писать истории про следующие темы:
+{% for story in stories_summary %}
+{{ story }}
+{% endfor %}
+{% endif %}
 """

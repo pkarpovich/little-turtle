@@ -3,7 +3,7 @@ import os
 from dependency_injector import containers, providers
 from langchain.chat_models import ChatOpenAI
 
-from little_turtle.chains import TurtleStoryChain, ImagePromptsGeneratorChain
+from little_turtle.chains import TurtleStoryChain, ImagePromptsGeneratorChain, StorySummarizationChain
 from little_turtle.controlles import StoriesController
 from little_turtle.database import Database
 from little_turtle.handlers import TelegramHandlers
@@ -38,13 +38,16 @@ class Container(containers.DeclarativeContainer):
 
     story_chain = providers.Factory(TurtleStoryChain, llm=llm, config=config)
     image_prompt_chain = providers.Factory(ImagePromptsGeneratorChain, llm=llm, config=config)
+    story_summarization_chain = providers.Factory(StorySummarizationChain, llm=llm, config=config)
 
     stories_controller = providers.Factory(
         StoriesController,
+        config=config,
         story_store=story_store,
         story_chain=story_chain,
         image_prompt_chain=image_prompt_chain,
         image_generation_service=image_generation_service,
+        story_summarization_chain=story_summarization_chain,
     )
 
     telegram_handlers = providers.Factory(
