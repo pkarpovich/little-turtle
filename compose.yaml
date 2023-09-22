@@ -42,6 +42,7 @@ services:
   story-cache:
     container_name: story-cache
     image: redis:7.0.2-alpine
+    restart: unless-stopped
     expose:
       - 6379
 
