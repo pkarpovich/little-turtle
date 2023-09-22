@@ -22,9 +22,6 @@ RUN --mount=type=cache,target=/var/cache/apt \
     && adduser --system --uid 1001 --gid 1001 --no-create-home appuser \
     # Upgrade the package index and install security upgrades
     && apt-get update \
-    && apt-get install -y locales \
-    && sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen \
-    && dpkg-reconfigure --frontend=noninteractive locales \
     && apt-get upgrade -y \
     # Install dependencies \
     && pip install --upgrade pip \
