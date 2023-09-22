@@ -22,6 +22,7 @@ class ImageStatusResponse(TypedDict):
 
 class ImageStatus(TypedDict):
     progress: int
+    progressImageUrl: str
     response: ImageStatusResponse
 
 

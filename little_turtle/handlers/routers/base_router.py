@@ -21,11 +21,22 @@ class BaseRouter(ABC):
             chat_id: int,
             reply_id: int = None,
             silent: bool = True,
+            photo_url: str = None,
             show_typing: bool = False,
             buttons: InlineKeyboardMarkup = None
     ) -> Message:
         if show_typing:
             await self.bot.send_chat_action(chat_id, 'typing')
+
+        if photo_url is not None:
+            return await self.bot.send_photo(
+                chat_id,
+                photo_url,
+                caption=message,
+                reply_to_message_id=reply_id,
+                disable_notification=silent,
+                reply_markup=buttons
+            )
 
         return await self.bot.send_message(
             chat_id,

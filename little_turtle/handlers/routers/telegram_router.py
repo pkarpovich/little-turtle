@@ -346,6 +346,7 @@ class TelegramRouter(BaseRouter):
             status_message = await self.send_message(
                 messages.IMAGE_GENERATION_PROGRESS_UPDATE(image_status['progress']),
                 chat_id,
+                photo_url=image_status.get('progressImageUrl'),
             )
             last_message_id = status_message.message_id
 
