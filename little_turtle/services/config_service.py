@@ -29,7 +29,7 @@ class AppConfig:
 
     TNL_API_KEY: str
 
-    MAX_IMAGE_GEN_ATTEMPTS: int = 15
+    MAX_IMAGE_GEN_ATTEMPTS: int = 8
     IMAGE_GEN_ATTEMPTS_DELAY: int = 10
     IMAGE_GEN_MODEL_VERSION: str = "--v 5.2"
     GENERATION_LANGUAGE: str = "Russian"
