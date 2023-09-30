@@ -15,3 +15,5 @@ REMEMBER_TARGET_TOPIC = "Alright, I'll use this topic in the next story! 🐢�
 START_REPLY = "Hey there! 🐢👋 I'm a turtle bot! 🐢🤖 I can help you with some turtle stuff! 🐢📲"
 PONG_REPLY = "Pong! 🐢🏓"
 NO_STATE = "Sorry, I don't have any story state in memory! 🐢🤔"
+SET_COMMENT = "Alright, I'll remember this generation comment! 🐢📝"
+CLEAR_COMMENT = "Alright, I'll forget generation comment! 🐢🤔"

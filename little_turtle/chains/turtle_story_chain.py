@@ -1,4 +1,4 @@
-from typing import TypedDict, List
+from typing import TypedDict, List, Optional
 
 from langchain import LLMChain, PromptTemplate
 from langchain.base_language import BaseLanguageModel
@@ -15,6 +15,7 @@ class TurtleStoryChainVariables(TypedDict):
     target_topics: List[str]
     stories_summary: List[str]
     message_examples: List[str]
+    comment: str
 
 
 class TurtleStoryChain:
@@ -38,12 +39,14 @@ class TurtleStoryChain:
             date: str,
             stories: List[Story],
             target_topics: List[str],
-            stories_summary: List[str]
+            stories_summary: List[str],
+            generation_comment: Optional[str]
     ) -> TurtleStoryChainVariables:
-        picked_messages = random_pick_n(stories, 3)
+        picked_messages = random_pick_n(stories, 3) if len(generation_comment) == 0 else list()
         message_examples = [message["content"] for message in picked_messages]
 
         return TurtleStoryChainVariables(
+            comment=generation_comment,
             target_topics=target_topics,
             stories_summary=stories_summary,
             message_examples=message_examples,

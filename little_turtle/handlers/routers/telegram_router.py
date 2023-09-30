@@ -48,6 +48,7 @@ class FormState(StatesGroup):
     image = State()
     stories_summary = State()
     target_topics = State()
+    comment = State()
 
 
 class TelegramRouter(BaseRouter):
@@ -75,6 +76,8 @@ class TelegramRouter(BaseRouter):
         self.router.message(Command("set_image_prompt"))(self.set_image_prompt_handler)
         self.router.message(Command("set_image"))(self.set_image_handler)
         self.router.message(Command("add_target_topic"))(self.add_target_topic_handler)
+        self.router.message(Command("set_comment"))(self.set_comment)
+        self.router.message(Command("clear_comment"))(self.clear_comment)
         self.router.message(Command("story"))(self.story_handler)
         self.router.message(Command("preview"))(self.preview_handler)
         self.router.message(Command("schedule"))(self.schedule_handler)
@@ -199,6 +202,17 @@ class TelegramRouter(BaseRouter):
 
         await self.__add_target_topic(message.reply_to_message.text, ctx)
 
+    async def set_comment(self, message: Message, ctx: BotContext):
+        if not message.reply_to_message or not message.reply_to_message.text:
+            return await self.send_message(error_messages.ERR_NO_REPLY_MSG, ctx.chat_id)
+
+        await ctx.state.update_data(comment=message.reply_to_message.text)
+        await self.send_message(messages.SET_COMMENT, ctx.chat_id)
+
+    async def clear_comment(self, _: Message, ctx: BotContext):
+        await ctx.state.update_data(comment=None)
+        await self.send_message(messages.CLEAR_COMMENT, ctx.chat_id)
+
     async def schedule_handler(self, message: Message, ctx: BotContext):
         raw_date = message.text.split(' ')[-1]
 
@@ -282,8 +296,9 @@ class TelegramRouter(BaseRouter):
         data = await ctx.state.get_data()
         stories_summary = data.get('stories_summary', list())
         target_topics = data.get('target_topics', list())
+        generation_comment = data.get('comment', "")
 
-        story_resp = self.story_controller.suggest_story(date, stories_summary, target_topics)
+        story_resp = self.story_controller.suggest_story(date, stories_summary, target_topics, generation_comment)
         await self.send_message(
             story_resp['story'],
             chat_id=ctx.chat_id,

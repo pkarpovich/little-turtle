@@ -16,8 +16,14 @@ For understanding you will have some structure of the story, but you can use any
 2. Interesting facts about the day, combined with an inspiring motivational storyline
 3. Best wishes for a good day
 
+{% if date %}
 Story should be for {{date}}.
+{% endif %}
 
+{% if comment %}
+Today is a special day, and we should write a story about it.
+The reason or plot of the story: {{comment}}
+{% endif %}
 
 {% if message_examples|length > 0 %}
 Additionally, you have examples of stories that were written in the past. You can draw inspiration from these to understand what I expect from you. However, remember that it would be best if you wrote your own unique story. I know that you will do better.

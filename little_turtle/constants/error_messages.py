@@ -12,3 +12,4 @@ ERR_IMAGE_GENERATION = "Sorry, I'm having trouble generating your image! 🐢�
 ERR_IMAGE_GENERATION_FULL = lambda description: f"Sorry, I'm having trouble generating your image! 🐢🤔\n\n{description}"
 ERR_UNKNOWN_USER = "Sorry, I don't know you! 🐢🤔"
 UNHANDLED_ERROR = "Sorry, I'm having trouble processing your request! 🐢🤔"
+ERR_NO_REPLY_MSG = "Please, reply to the text message with the message! 🐢🤔"
