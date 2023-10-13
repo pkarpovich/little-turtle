@@ -1,7 +1,8 @@
 from typing import TypedDict, List, Optional
 
-from langchain import LLMChain, PromptTemplate
 from langchain.base_language import BaseLanguageModel
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 
 from little_turtle.prompts import TURTLE_STORY_PROMPT_TEMPLATE
 from little_turtle.services import AppConfig

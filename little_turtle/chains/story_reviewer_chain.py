@@ -1,6 +1,7 @@
 from typing import TypedDict
 
-from langchain import LLMChain, PromptTemplate
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 from langchain.schema.language_model import BaseLanguageModel
 
 from little_turtle.prompts import STORY_REVIEWER_PROMPT_TEMPLATE
