@@ -54,32 +54,6 @@ services:
     ports:
       - 6379:6379
 
-  langfuse-server:
-    image: ghcr.io/langfuse/langfuse:latest
-    depends_on:
-      - langfuse-db
-    ports:
-      - 33600:3000
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${LF_DB_URL:-postgres://langfuse_admin:langfuse@langfuse-db:5432/langfuse}
-      - NEXTAUTH_SECRET=${LF_NEXTAUTH_SECRET:-mysecret}
-      - SALT=${LF_SALT:-mysalt}
-      - NEXTAUTH_URL=${LF_NEXTAUTH_URL:-http://localhost:33600}
-      - TELEMETRY_ENABLED=false
-      - NEXT_PUBLIC_SIGN_UP_DISABLED=false
-      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=true
-
-  langfuse-db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=${LF_DB_USER:-langfuse_admin}
-      - POSTGRES_PASSWORD=${LF_DB_PASSWORD:-langfuse}
-      - POSTGRES_DB=${LF_DB_NAME:-langfuse}
-    volumes:
-      - langfuse-db-data:/var/lib/postgresql/data
-
 volumes:
   story-store-data:
   story-images:
