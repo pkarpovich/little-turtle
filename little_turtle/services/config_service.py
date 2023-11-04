@@ -38,6 +38,10 @@ class AppConfig:
     DEFAULT_SCHEDULE_MINUTE: int = 4
     DEFAULT_SCHEDULE_SECOND: int = 33
 
+    LANGFUSE_PUBLIC_KEY: str
+    LANGFUSE_SECRET_KEY: str
+    LANGFUSE_URL: str
+
     ERROR_HANDLER_ENABLED: bool = False
     ERROR_HANDLER_DNS: str = ""
     ERROR_HANDLER_ENVIRONMENT: str = "development"

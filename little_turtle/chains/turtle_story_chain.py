@@ -4,6 +4,7 @@ from langchain.base_language import BaseLanguageModel
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
+from little_turtle.chains import ChainAnalytics
 from little_turtle.prompts import TURTLE_STORY_PROMPT_TEMPLATE
 from little_turtle.services import AppConfig
 from little_turtle.stores import Story
@@ -20,8 +21,9 @@ class TurtleStoryChainVariables(TypedDict):
 
 
 class TurtleStoryChain:
-    def __init__(self, llm: BaseLanguageModel, config: AppConfig):
+    def __init__(self, llm: BaseLanguageModel, chain_analytics: ChainAnalytics, config: AppConfig):
         self.config = config
+        self.chain_analytics = chain_analytics
         self.llm_chain = LLMChain(
             prompt=PromptTemplate.from_template(TURTLE_STORY_PROMPT_TEMPLATE, template_format="jinja2"),
             llm=llm,
@@ -33,7 +35,7 @@ class TurtleStoryChain:
         return self.llm_chain
 
     def run(self, variables: TurtleStoryChainVariables) -> str:
-        return self.llm_chain.run(variables)
+        return self.llm_chain.run(variables, callbacks=[self.chain_analytics.callback_handler])
 
     def enrich_run_variables(
             self,

@@ -6,7 +6,7 @@ from little_turtle.chains import (
     ImagePromptsGeneratorChain,
     StorySummarizationChain,
     StoryReviewerChain,
-    TurtleStoryChain,
+    TurtleStoryChain, ChainAnalytics,
 )
 from little_turtle.services import ImageGenerationService, ImageStatus, ImageRequestStatus, AppConfig
 from little_turtle.stores import Story, StoryStore
@@ -25,6 +25,7 @@ class StoriesController:
             config: AppConfig,
             story_store: StoryStore,
             story_chain: TurtleStoryChain,
+            chain_analytics: ChainAnalytics,
             story_reviewer_chain: StoryReviewerChain,
             image_prompt_chain: ImagePromptsGeneratorChain,
             image_generation_service: ImageGenerationService,
@@ -33,6 +34,7 @@ class StoriesController:
         self.config = config
         self.story_store = story_store
         self.story_chain = story_chain
+        self.chain_analytics = chain_analytics
         self.story_reviewer_chain = story_reviewer_chain
         self.image_prompt_chain = image_prompt_chain
         self.image_generation_service = image_generation_service
@@ -76,7 +78,11 @@ class StoriesController:
             output_variables=['story', 'story_event_summary', 'review'],
             verbose=self.config.DEBUG,
         )
-        return sequential_chain(story_variables)
+
+        resp = sequential_chain(story_variables, callbacks=[self.chain_analytics.callback_handler])
+        self.chain_analytics.flush()
+
+        return resp
 
     def trigger_button(self, button: str, message_id: str) -> ImageRequestStatus:
         return self.image_generation_service.trigger_button(button, message_id)

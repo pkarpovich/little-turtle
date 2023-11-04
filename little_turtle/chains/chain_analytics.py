@@ -1,0 +1,22 @@
+from langfuse.callback import CallbackHandler
+
+from little_turtle.services import AppConfig
+
+
+class ChainAnalytics:
+    callback_handler: CallbackHandler
+
+    def __init__(self, config: AppConfig):
+        self.callback_handler = CallbackHandler(
+            config.LANGFUSE_PUBLIC_KEY,
+            config.LANGFUSE_SECRET_KEY,
+            config.LANGFUSE_URL
+        )
+
+    @property
+    def get_callback_handler(self) -> CallbackHandler:
+        return self.callback_handler
+
+    def flush(self) -> None:
+        self.callback_handler.langfuse.flush()
+

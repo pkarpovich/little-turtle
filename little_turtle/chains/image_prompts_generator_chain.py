@@ -5,6 +5,7 @@ from langchain.chains.base import Chain
 from langchain.prompts import PromptTemplate
 from langchain.schema.language_model import BaseLanguageModel
 
+from little_turtle.chains import ChainAnalytics
 from little_turtle.prompts import IMAGE_PROMPTS_GENERATOR_PROMPT
 from little_turtle.services import AppConfig
 
@@ -17,8 +18,9 @@ class ImagePromptsGeneratorChainVariables(TypedDict):
 class ImagePromptsGeneratorChain:
     llm_chain: Chain = None
 
-    def __init__(self, llm: BaseLanguageModel, config: AppConfig):
+    def __init__(self, llm: BaseLanguageModel, chain_analytics: ChainAnalytics, config: AppConfig):
         self.config = config
+        self.chain_analytics = chain_analytics
         self.llm_chain = LLMChain(
             prompt=PromptTemplate.from_template(IMAGE_PROMPTS_GENERATOR_PROMPT),
             llm=llm,
@@ -26,7 +28,10 @@ class ImagePromptsGeneratorChain:
         )
 
     def run(self, variables: ImagePromptsGeneratorChainVariables) -> str:
-        return self.llm_chain.run(variables)
+        image_prompt = self.llm_chain.run(variables, callbacks=[self.chain_analytics.callback_handler])
+        self.chain_analytics.flush()
+
+        return image_prompt
 
     def enrich_run_variables(self, content: str) -> ImagePromptsGeneratorChainVariables:
         return ImagePromptsGeneratorChainVariables(

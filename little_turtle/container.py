@@ -7,7 +7,7 @@ from little_turtle.chains import (
     TurtleStoryChain,
     StoryReviewerChain,
     StorySummarizationChain,
-    ImagePromptsGeneratorChain,
+    ImagePromptsGeneratorChain, ChainAnalytics,
 )
 from little_turtle.controlles import StoriesController
 from little_turtle.database import Database
@@ -41,16 +41,34 @@ class Container(containers.DeclarativeContainer):
 
     llm = providers.Singleton(ChatOpenAI, model_name=model_name, openai_api_key=openai_api_key)
 
-    story_chain = providers.Factory(TurtleStoryChain, llm=llm, config=config)
-    story_reviewer_chain = providers.Factory(StoryReviewerChain, llm=llm, config=config)
-    image_prompt_chain = providers.Factory(ImagePromptsGeneratorChain, llm=llm, config=config)
-    story_summarization_chain = providers.Factory(StorySummarizationChain, llm=llm, config=config)
+    chain_analytics = providers.Factory(ChainAnalytics, config=config)
+
+    story_chain = providers.Factory(TurtleStoryChain, llm=llm, chain_analytics=chain_analytics, config=config)
+    story_reviewer_chain = providers.Factory(
+        StoryReviewerChain,
+        llm=llm,
+        config=config,
+        chain_analytics=chain_analytics,
+    )
+    image_prompt_chain = providers.Factory(
+        ImagePromptsGeneratorChain,
+        llm=llm,
+        config=config,
+        chain_analytics=chain_analytics,
+    )
+    story_summarization_chain = providers.Factory(
+        StorySummarizationChain,
+        llm=llm,
+        config=config,
+        chain_analytics=chain_analytics,
+    )
 
     stories_controller = providers.Factory(
         StoriesController,
         config=config,
         story_store=story_store,
         story_chain=story_chain,
+        chain_analytics=chain_analytics,
         image_prompt_chain=image_prompt_chain,
         story_reviewer_chain=story_reviewer_chain,
         image_generation_service=image_generation_service,
