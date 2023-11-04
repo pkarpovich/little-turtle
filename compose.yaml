@@ -29,7 +29,6 @@ services:
       - story-images:/app/little_turtle/images
     depends_on:
       - story-store
-      - langfuse-server
 
   story-store:
     container_name: story-store
