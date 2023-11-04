@@ -21,6 +21,9 @@ services:
       ERROR_HANDLER_DNS: ${ERROR_HANDLER_DNS}
       ERROR_HANDLER_ENVIRONMENT: ${ERROR_HANDLER_ENVIRONMENT}
       ERROR_HANDLER_SERVER_NAME: ${ERROR_HANDLER_SERVER_NAME}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_URL: ${LANGFUSE_URL}
     volumes:
       - ./little_turtle/services/little_turtle.session:/app/little_turtle/services/little_turtle.session
       - story-images:/app/little_turtle/images
