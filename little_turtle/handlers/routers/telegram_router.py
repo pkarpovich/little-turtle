@@ -2,7 +2,8 @@ import asyncio
 import os
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import BinaryIO, Union
+from os.path import basename
+from typing import Union, BinaryIO
 from urllib.parse import urlparse
 
 from aiogram import Router, Bot
@@ -229,10 +230,10 @@ class TelegramRouter(BaseRouter):
                 or not len(message.reply_to_message.photo) > 0
         ):
             return await self.send_message(error_messages.ERR_NO_STORY_PHOTO, message.chat.id)
-        photo = await self.__get_file(message.reply_to_message.photo[-1].file_id)
+        photo, photo_name = await self.__get_file(message.reply_to_message.photo[-1].file_id)
 
         date = await self.__prepare_schedule_date(raw_date)
-        await self.__schedule_story(date, text, photo, ctx)
+        await self.__schedule_story(date, text, photo, photo_name, ctx)
 
     async def image_button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback, ctx: BotContext):
         await query.answer(messages.ACTION_IN_PROGRESS)
@@ -273,10 +274,10 @@ class TelegramRouter(BaseRouter):
                 await self.__add_target_topic(query.message.text, ctx)
 
             case ForwardAction.SCHEDULE:
-                photo = await self.__get_file(query.message.photo[-1].file_id)
+                photo, photo_name = await self.__get_file(query.message.photo[-1].file_id)
                 text = data.get('story')
                 date = await self.__prepare_schedule_date(data.get('date'))
-                await self.__schedule_story(date, text, photo, ctx)
+                await self.__schedule_story(date, text, photo, photo_name, ctx)
                 await ctx.state.clear()
 
     async def send_morning_message(self):
@@ -437,7 +438,7 @@ class TelegramRouter(BaseRouter):
         await ctx.state.update_data(target_topics=target_topics)
         await self.send_message(messages.REMEMBER_TARGET_TOPIC, ctx.chat_id)
 
-    async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, ctx: BotContext):
+    async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, photo_name: str, ctx: BotContext):
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
             self.logger_service.info(
                 "Sending scheduled story",
@@ -447,6 +448,7 @@ class TelegramRouter(BaseRouter):
             await self.telegram_service.send_photo(
                 chat_id,
                 photo,
+                photo_name,
                 text,
                 date,
             )
@@ -454,9 +456,9 @@ class TelegramRouter(BaseRouter):
 
         await self.send_message(messages.SEND_SCHEDULE_STORY, ctx.chat_id)
 
-    async def __get_file(self, file_id: str) -> BinaryIO:
+    async def __get_file(self, file_id: str) -> [BinaryIO, str]:
         file = await self.bot.get_file(file_id)
-        return await self.bot.download_file(file.file_path)
+        return await self.bot.download_file(file.file_path), basename(file.file_path)
 
     async def __save_file_to_disk(self, file_id: str) -> str:
         file = await self.bot.get_file(file_id)

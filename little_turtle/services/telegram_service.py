@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 from typing import Union, BinaryIO
 
 from telethon import TelegramClient
@@ -47,14 +48,26 @@ class TelegramService:
             schedule=schedule,
         )
 
-    async def send_photo(self, chat_id: Union[str, int], photo: BinaryIO, message: str, schedule: datetime = None):
+    async def send_photo(
+            self,
+            chat_id: Union[str, int],
+            photo: BinaryIO,
+            photo_name: str,
+            message: str,
+            schedule: datetime = None
+    ):
         await self.ensure_connected()
-        await self.client.send_file(
-            chat_id,
-            photo,
-            caption=message,
-            schedule=schedule,
-        )
+
+        extension = os.path.splitext(photo_name)[1]
+        with NamedTemporaryFile(suffix=extension) as temp:
+            temp.write(photo.read())
+            temp.flush()
+            await self.client.send_file(
+                chat_id,
+                temp.name,
+                caption=message,
+                schedule=schedule,
+            )
 
     async def get_chats(self, limit: int) -> list[dict]:
         await self.ensure_connected()
