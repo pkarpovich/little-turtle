@@ -5,10 +5,13 @@ from langchain.chains import SequentialChain
 from little_turtle.chains import (
     ImagePromptsGeneratorChain,
     StorySummarizationChain,
+    HistoricalEventsChain,
     StoryReviewerChain,
-    TurtleStoryChain, ChainAnalytics,
+    TurtleStoryChain,
+    ChainAnalytics,
 )
-from little_turtle.services import ImageGenerationService, ImageStatus, ImageRequestStatus, AppConfig
+from little_turtle.services import ImageGenerationService, ImageStatus, ImageRequestStatus, AppConfig, \
+    HistoricalEventsService
 from little_turtle.stores import Story, StoryStore
 from little_turtle.utils import remove_optional_last_period
 
@@ -27,18 +30,31 @@ class StoriesController:
             story_chain: TurtleStoryChain,
             chain_analytics: ChainAnalytics,
             story_reviewer_chain: StoryReviewerChain,
+            historical_events_chain: HistoricalEventsChain,
             image_prompt_chain: ImagePromptsGeneratorChain,
             image_generation_service: ImageGenerationService,
             story_summarization_chain: StorySummarizationChain,
+            historical_events_service: HistoricalEventsService,
     ):
         self.config = config
         self.story_store = story_store
         self.story_chain = story_chain
+        self.historical_events_chain = historical_events_chain
         self.chain_analytics = chain_analytics
-        self.story_reviewer_chain = story_reviewer_chain
         self.image_prompt_chain = image_prompt_chain
+        self.story_reviewer_chain = story_reviewer_chain
         self.image_generation_service = image_generation_service
         self.story_summarization_chain = story_summarization_chain
+        self.historical_events_service = historical_events_service
+
+    def suggest_on_this_day_events(self, date: str) -> str:
+        events = self.historical_events_service.get_by_date(date)
+        
+        return self.historical_events_chain.run(
+            self.historical_events_chain.enrich_run_variables(
+                events
+            )
+        )
 
     def imagine_story(self, image_prompt: str) -> ImageRequestStatus:
         return self.image_generation_service.imagine(image_prompt)

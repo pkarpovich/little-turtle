@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from os.path import basename
-from typing import Union, BinaryIO
+from typing import Union, BinaryIO, Optional
 from urllib.parse import urlparse
 
 from aiogram import Router, Bot
@@ -36,10 +36,12 @@ class ForwardAction(str, Enum):
     SCHEDULE = "schedule"
     ADD_EVENT_SUMMARY = "add_event_summary"
     TARGET_TOPIC = "target_topic"
+    SELECT_TARGET_TOPIC = "select_target_topic"
 
 
 class ForwardCallback(CallbackData, prefix="turtle_forward"):
     action: ForwardAction
+    payload: Optional[str] = None
 
 
 class FormState(StatesGroup):
@@ -177,6 +179,26 @@ class TelegramRouter(BaseRouter):
         if not await self.__validate_story_date(message, ctx.chat_id):
             return
 
+        await self.send_message(
+            messages.SUGGEST_TARGET_TOPICS,
+            ctx.chat_id,
+        )
+
+        topics = self.story_controller.suggest_on_this_day_events(message.reply_to_message.text)
+        await self.send_message(
+            topics,
+            ctx.chat_id,
+            buttons=prepare_buttons(
+                dict([
+                    ('1', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="1")),
+                    ('2', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="2")),
+                    ('3', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="3")),
+                    ('4', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="4")),
+                    ('5', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="5")),
+                ])
+            )
+        )
+
         await self.__set_date(message.reply_to_message.text, ctx)
 
     async def set_story_handler(self, message: Message, ctx: BotContext):
@@ -279,6 +301,10 @@ class TelegramRouter(BaseRouter):
                 date = await self.__prepare_schedule_date(data.get('date'))
                 await self.__schedule_story(date, text, photo, photo_name, ctx)
                 await ctx.state.clear()
+
+            case ForwardAction.SELECT_TARGET_TOPIC:
+                topics = query.message.text.split('\n\n')
+                await self.__add_target_topic(topics[int(callback_data.payload) - 1], ctx)
 
     async def send_morning_message(self):
         next_week_date = datetime.now() + timedelta(days=7)
