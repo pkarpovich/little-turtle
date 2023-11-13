@@ -10,6 +10,7 @@ from little_turtle.chains import (
     ImagePromptsGeneratorChain,
     ChainAnalytics,
     HistoricalEventsChain,
+    ImageGeneratorChain,
 )
 from little_turtle.controlles import StoriesController
 from little_turtle.database import Database
@@ -71,6 +72,7 @@ class Container(containers.DeclarativeContainer):
         llm=llm,
         config=config,
     )
+    image_generator_chain = providers.Factory(ImageGeneratorChain)
 
     stories_controller = providers.Factory(
         StoriesController,
@@ -80,6 +82,7 @@ class Container(containers.DeclarativeContainer):
         chain_analytics=chain_analytics,
         image_prompt_chain=image_prompt_chain,
         story_reviewer_chain=story_reviewer_chain,
+        image_generator_chain=image_generator_chain,
         historical_events_chain=historical_events_chain,
         image_generation_service=image_generation_service,
         story_summarization_chain=story_summarization_chain,

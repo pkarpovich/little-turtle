@@ -369,8 +369,19 @@ class TelegramRouter(BaseRouter):
     async def __generate_image(self, image_prompt: str, chat_id: int):
         await self.send_message(messages.IMAGE_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
 
-        image = self.story_controller.imagine_story(image_prompt)
-        await self.__wait_for_message(image['messageId'], chat_id)
+        image_url = self.story_controller.imagine_story(image_prompt)
+
+        image = URLInputFile(image_url, filename=os.path.basename(urlparse(image_url).path))
+        return await self.bot.send_photo(
+            chat_id,
+            image,
+            reply_markup=prepare_buttons(
+                {
+                    '🔁': ForwardCallback(action=ForwardAction.IMAGINE_STORY),
+                    '🎯': ForwardCallback(action=ForwardAction.SET_IMAGE),
+                }
+            )
+        )
 
     async def __wait_for_message(self, message_id: str, chat_id: int):
         last_message_id = None

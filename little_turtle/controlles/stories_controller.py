@@ -6,6 +6,7 @@ from little_turtle.chains import (
     ImagePromptsGeneratorChain,
     StorySummarizationChain,
     HistoricalEventsChain,
+    ImageGeneratorChain,
     StoryReviewerChain,
     TurtleStoryChain,
     ChainAnalytics,
@@ -30,6 +31,7 @@ class StoriesController:
             story_chain: TurtleStoryChain,
             chain_analytics: ChainAnalytics,
             story_reviewer_chain: StoryReviewerChain,
+            image_generator_chain: ImageGeneratorChain,
             historical_events_chain: HistoricalEventsChain,
             image_prompt_chain: ImagePromptsGeneratorChain,
             image_generation_service: ImageGenerationService,
@@ -43,21 +45,22 @@ class StoriesController:
         self.chain_analytics = chain_analytics
         self.image_prompt_chain = image_prompt_chain
         self.story_reviewer_chain = story_reviewer_chain
+        self.image_generator_chain = image_generator_chain
         self.image_generation_service = image_generation_service
         self.story_summarization_chain = story_summarization_chain
         self.historical_events_service = historical_events_service
 
     def suggest_on_this_day_events(self, date: str) -> str:
         events = self.historical_events_service.get_by_date(date)
-        
+
         return self.historical_events_chain.run(
             self.historical_events_chain.enrich_run_variables(
                 events
             )
         )
 
-    def imagine_story(self, image_prompt: str) -> ImageRequestStatus:
-        return self.image_generation_service.imagine(image_prompt)
+    def imagine_story(self, image_prompt: str) -> str:
+        return self.image_generator_chain.run(image_prompt)
 
     def get_image_status(self, message_id: str) -> ImageStatus:
         return self.image_generation_service.get_image(message_id)
