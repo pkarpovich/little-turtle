@@ -35,7 +35,6 @@ class Container(containers.DeclarativeContainer):
 
     error_handler_service = providers.Singleton(ErrorHandlerService, config=config, logger_service=logger_service)
     telegram_service = providers.Factory(TelegramService, config=config)
-    image_generation_service = providers.Factory(ImageGenerationService, config=config, logger_service=logger_service)
     historical_events_service = providers.Factory(HistoricalEventsService)
 
     story_store = providers.Factory(StoryStore, db=db)
@@ -83,7 +82,6 @@ class Container(containers.DeclarativeContainer):
         story_reviewer_chain=story_reviewer_chain,
         image_generator_chain=image_generator_chain,
         historical_events_chain=historical_events_chain,
-        image_generation_service=image_generation_service,
         story_summarization_chain=story_summarization_chain,
         historical_events_service=historical_events_service,
     )
