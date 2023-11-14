@@ -6,6 +6,7 @@ services:
     container_name: story-bot
     restart: unless-stopped
     environment:
+      OPENAI_MODEL: ${OPENAI_MODEL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
