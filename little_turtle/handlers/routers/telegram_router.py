@@ -1,4 +1,3 @@
-import asyncio
 import os
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -88,7 +87,6 @@ class TelegramRouter(BaseRouter):
         self.router.message(Command("cancel"))(self.cancel_handler)
         self.router.message(FormState.date)(self.story_date_handler)
         self.router.callback_query(ForwardCallback.filter())(self.forward_click_handler)
-        self.router.callback_query(ImageCallback.filter())(self.image_button_click_handler)
 
         return self.router
 
@@ -257,12 +255,6 @@ class TelegramRouter(BaseRouter):
         date = await self.__prepare_schedule_date(raw_date)
         await self.__schedule_story(date, text, photo, photo_name, ctx)
 
-    async def image_button_click_handler(self, query: CallbackQuery, callback_data: ImageCallback, ctx: BotContext):
-        await query.answer(messages.ACTION_IN_PROGRESS)
-
-        message = self.story_controller.trigger_button(callback_data.button, callback_data.message_id)
-        await self.__wait_for_message(message['messageId'], ctx.chat_id)
-
     async def forward_click_handler(self, query: CallbackQuery, callback_data: ForwardCallback, ctx: BotContext):
         await query.answer(messages.ACTION_IN_PROGRESS)
         data = await ctx.state.get_data()
@@ -382,56 +374,6 @@ class TelegramRouter(BaseRouter):
                 }
             )
         )
-
-    async def __wait_for_message(self, message_id: str, chat_id: int):
-        last_message_id = None
-        attempts = 0
-
-        while True:
-            if attempts > self.config.MAX_IMAGE_GEN_ATTEMPTS:
-                return await self.send_message(error_messages.ERR_IMAGE_GENERATION, chat_id)
-
-            image_status = self.story_controller.get_image_status(message_id)
-
-            if last_message_id:
-                await self.bot.delete_message(chat_id, last_message_id)
-
-            status_message = await self.send_message(
-                messages.IMAGE_GENERATION_PROGRESS_UPDATE(image_status['progress']),
-                chat_id,
-                photo_url=image_status.get('progressImageUrl'),
-            )
-            last_message_id = status_message.message_id
-
-            if image_status['progress'] != 100:
-                attempts += 1
-                await asyncio.sleep(self.config.IMAGE_GEN_ATTEMPTS_DELAY)
-                continue
-
-            message_id = image_status['response']['buttonMessageId']
-            image_url = image_status['response']['imageUrl']
-            raw_buttons = image_status['response']['buttons']
-            description = image_status['response']['description']
-            image_name = os.path.basename(urlparse(image_url).path)
-
-            await self.bot.delete_message(chat_id, last_message_id)
-            if len(image_url) == 0 and len(description) > 0:
-                return await self.send_message(error_messages.ERR_IMAGE_GENERATION_FULL(description), chat_id)
-
-            buttons = list(
-                map(
-                    lambda button: (
-                        button,
-                        ImageCallback(message_id=message_id, button=button)
-                    ),
-                    raw_buttons
-                )
-            )
-            buttons.append(('🎯', ForwardCallback(action=ForwardAction.SET_IMAGE)))
-            reply_markup = prepare_buttons(dict(buttons))
-
-            image = URLInputFile(image_url, filename=image_name)
-            return await self.bot.send_photo(chat_id, image, reply_markup=reply_markup)
 
     async def __set_date(self, date: str, ctx: BotContext) -> bool:
         if not validate_date(date):

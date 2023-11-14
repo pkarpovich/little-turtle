@@ -11,7 +11,6 @@ from little_turtle.services import AppConfig
 
 
 class ImagePromptsGeneratorChainVariables(TypedDict):
-    model_version: str
     new_story: str
 
 
@@ -33,8 +32,6 @@ class ImagePromptsGeneratorChain:
 
         return image_prompt
 
-    def enrich_run_variables(self, content: str) -> ImagePromptsGeneratorChainVariables:
-        return ImagePromptsGeneratorChainVariables(
-            model_version=self.config.IMAGE_GEN_MODEL_VERSION,
-            new_story=content,
-        )
+    @staticmethod
+    def enrich_run_variables(content: str) -> ImagePromptsGeneratorChainVariables:
+        return ImagePromptsGeneratorChainVariables(new_story=content)

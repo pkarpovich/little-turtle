@@ -17,7 +17,6 @@ from little_turtle.database import Database
 from little_turtle.handlers import TelegramHandlers
 from little_turtle.services import (
     AppConfig,
-    ImageGenerationService,
     LoggerService,
     TelegramService,
     ErrorHandlerService,

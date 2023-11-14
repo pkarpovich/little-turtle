@@ -11,8 +11,7 @@ from little_turtle.chains import (
     TurtleStoryChain,
     ChainAnalytics,
 )
-from little_turtle.services import ImageGenerationService, ImageStatus, ImageRequestStatus, AppConfig, \
-    HistoricalEventsService
+from little_turtle.services import AppConfig, HistoricalEventsService
 from little_turtle.stores import Story, StoryStore
 from little_turtle.utils import remove_optional_last_period
 
@@ -34,7 +33,6 @@ class StoriesController:
             image_generator_chain: ImageGeneratorChain,
             historical_events_chain: HistoricalEventsChain,
             image_prompt_chain: ImagePromptsGeneratorChain,
-            image_generation_service: ImageGenerationService,
             story_summarization_chain: StorySummarizationChain,
             historical_events_service: HistoricalEventsService,
     ):
@@ -46,7 +44,6 @@ class StoriesController:
         self.image_prompt_chain = image_prompt_chain
         self.story_reviewer_chain = story_reviewer_chain
         self.image_generator_chain = image_generator_chain
-        self.image_generation_service = image_generation_service
         self.story_summarization_chain = story_summarization_chain
         self.historical_events_service = historical_events_service
 
@@ -61,9 +58,6 @@ class StoriesController:
 
     def imagine_story(self, image_prompt: str) -> str:
         return self.image_generator_chain.run(image_prompt)
-
-    def get_image_status(self, message_id: str) -> ImageStatus:
-        return self.image_generation_service.get_image(message_id)
 
     def suggest_story_prompt(self, story_content: str) -> str:
         image_prompt_variables = self.image_prompt_chain.enrich_run_variables(story_content)
@@ -102,9 +96,6 @@ class StoriesController:
         self.chain_analytics.flush()
 
         return resp
-
-    def trigger_button(self, button: str, message_id: str) -> ImageRequestStatus:
-        return self.image_generation_service.trigger_button(button, message_id)
 
     def __get_messages_for_story(self) -> list[Story]:
         return self.story_store.get_all(
