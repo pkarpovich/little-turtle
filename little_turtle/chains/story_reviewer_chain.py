@@ -28,7 +28,7 @@ class StoryReviewerChain:
         return self.llm_chain
 
     def run(self, variables: StoryReviewerChainVariables) -> str:
-        return self.llm_chain.run(variables)
+        return self.llm_chain.run(variables, callbacks=[self.chain_analytics.get_callback_handler])
 
     @staticmethod
     def enrich_run_variables(content: str, language: str) -> StoryReviewerChainVariables:

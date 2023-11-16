@@ -92,7 +92,7 @@ class StoriesController:
             verbose=self.config.DEBUG,
         )
 
-        resp = sequential_chain(story_variables)
+        resp = sequential_chain(story_variables, callbacks=[self.chain_analytics.get_callback_handler])
         self.chain_analytics.flush()
 
         return resp

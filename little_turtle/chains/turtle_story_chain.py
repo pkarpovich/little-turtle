@@ -35,7 +35,7 @@ class TurtleStoryChain:
         return self.llm_chain
 
     def run(self, variables: TurtleStoryChainVariables) -> str:
-        return self.llm_chain.run(variables)
+        return self.llm_chain.run(variables, callbacks=[self.chain_analytics.get_callback_handler])
 
     def enrich_run_variables(
             self,

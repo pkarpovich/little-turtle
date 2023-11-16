@@ -27,7 +27,7 @@ class ImagePromptsGeneratorChain:
         )
 
     def run(self, variables: ImagePromptsGeneratorChainVariables) -> str:
-        image_prompt = self.llm_chain.run(variables)
+        image_prompt = self.llm_chain.run(variables, callbacks=[self.chain_analytics.get_callback_handler])
         self.chain_analytics.flush()
 
         return image_prompt
