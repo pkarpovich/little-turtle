@@ -8,22 +8,25 @@ from langchain.schema.language_model import BaseLanguageModel
 from little_turtle.services import AppConfig
 
 DAY_EVENT_PICKER_PROMPT = """
-You are a Content Curator for a children's book. Your task is to select the event of the day from a provided list of events. Please follow these steps:
+You are a Content Curator for a book. Your task is to select the event of the day from a provided list of events. Please follow these steps:
 
 Step 1:
-You should exclude political, war-related, and other sensitive events. The target audience is children.
-Therefore, you should select only positive events. The event should be interesting and visually engaging to easily illustrate it within a story.
+Remove the events from the list based on the following criteria:
+- Events that related to politics, that has impact only on a specific country
+- Events that connected to religion or religious holidays
+- Negative events for human history, such as wars, disasters and tragedies
+- Events that are not visually engaging
 
 Step 2:
-Sort events by interest and select the top 5 events.
+Sort events by following criteria:
+- Events that easy to visualize should be first
+- Most engaging events should be at the top of the list
+- Events that influence to the human history should be at the top of the list
 
 Step 3:
 Translate events into {language}. Avoid adding any additional information to the event information
 
-Events:
-{% for event in events %}
-{{ event }}
-{% endfor %}
+All events list: {{events|join(', ')}}
 
 The result should be a list of five events, each separated by two new lines. Refrain from displaying any intermediate information
 """
