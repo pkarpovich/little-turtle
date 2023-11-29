@@ -33,7 +33,6 @@ class ForwardAction(str, Enum):
     SET_IMAGE_PROMPT = "set_image_prompt"
     SET_IMAGE = "set_image"
     SCHEDULE = "schedule"
-    ADD_EVENT_SUMMARY = "add_event_summary"
     TARGET_TOPIC = "target_topic"
     SELECT_TARGET_TOPIC = "select_target_topic"
 
@@ -48,7 +47,6 @@ class FormState(StatesGroup):
     story = State()
     image_prompt = State()
     image = State()
-    stories_summary = State()
     target_topics = State()
     comment = State()
 
@@ -281,9 +279,6 @@ class TelegramRouter(BaseRouter):
             case ForwardAction.SET_IMAGE:
                 await self.__set_image(query.message.photo[-1].file_id, ctx)
 
-            case ForwardAction.ADD_EVENT_SUMMARY:
-                await self.__set_stories_summary(query.message.text, ctx)
-
             case ForwardAction.TARGET_TOPIC:
                 await self.__add_target_topic(query.message.text, ctx)
 
@@ -313,13 +308,12 @@ class TelegramRouter(BaseRouter):
             await self.send_message(messages.STORY_GENERATION_IN_PROGRESS, ctx.chat_id)
 
         data = await ctx.state.get_data()
-        stories_summary = data.get('stories_summary', list())
         target_topics = data.get('target_topics', list())
         generation_comment = data.get('comment', "")
 
-        story_resp = self.story_controller.suggest_story(date, stories_summary, target_topics, generation_comment)
+        story = self.story_controller.suggest_story(date, target_topics, generation_comment)
         await self.send_message(
-            story_resp['story'],
+            story,
             chat_id=ctx.chat_id,
             buttons=prepare_buttons(
                 {
@@ -328,18 +322,6 @@ class TelegramRouter(BaseRouter):
                     '🎯': ForwardCallback(action=ForwardAction.SET_STORY),
                 }
             )
-        )
-        await self.send_message(
-            story_resp['story_event_summary'],
-            chat_id=ctx.chat_id,
-            buttons=prepare_buttons({
-                '🟩': ForwardCallback(action=ForwardAction.TARGET_TOPIC),
-                '🛑': ForwardCallback(action=ForwardAction.ADD_EVENT_SUMMARY),
-            })
-        )
-        await self.send_message(
-            story_resp['review'],
-            chat_id=ctx.chat_id,
         )
 
     async def __generate_image_prompt(self, text: str, chat_id: int):
@@ -398,15 +380,6 @@ class TelegramRouter(BaseRouter):
 
         await ctx.state.update_data(image=image_path)
         await self.send_message(messages.REMEMBER_INPUT_IMAGE, ctx.chat_id)
-
-    async def __set_stories_summary(self, stories_summary: str, ctx: BotContext):
-        data = await ctx.state.get_data()
-
-        summary: [str] = data.get('stories_summary') or list()
-        summary.append(stories_summary)
-
-        await ctx.state.update_data(stories_summary=summary)
-        await self.send_message(messages.REMEMBER_INPUT_STORIES_SUMMARY, ctx.chat_id)
 
     async def __add_target_topic(self, target_topic: str, ctx: BotContext):
         data = await ctx.state.get_data()

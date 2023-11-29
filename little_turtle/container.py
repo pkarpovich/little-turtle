@@ -75,9 +75,7 @@ class Container(containers.DeclarativeContainer):
     stories_controller = providers.Factory(
         StoriesController,
         config=config,
-        story_store=story_store,
         story_chain=story_chain,
-        chain_analytics=chain_analytics,
         image_prompt_chain=image_prompt_chain,
         story_reviewer_chain=story_reviewer_chain,
         image_generator_chain=image_generator_chain,
