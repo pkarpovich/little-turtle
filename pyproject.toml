@@ -8,7 +8,7 @@ packages = [{include = "little_turtle"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-langchain = "^0.0.343"
+langchain = "^0.0.351"
 python-dotenv = "^1.0.0"
 openai = "^1.3.6"
 telethon = "^1.32.1"
