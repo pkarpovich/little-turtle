@@ -100,7 +100,17 @@ class TelegramRouter(BaseRouter):
             return
 
         await ctx.state.set_state(None)
-        await self.__generate_story(date, ctx)
+
+        topics = await self.__suggest_target_topics(date, ctx)
+        await self.__add_target_topic(topics[0], ctx)
+
+        story = await self.__generate_story(date, ctx)
+        await self.__set_story(story, ctx)
+
+        image_prompt = await self.__generate_image_prompt(story, ctx.chat_id)
+        await self.__set_image_prompt(image_prompt, ctx)
+
+        await self.__generate_image(image_prompt, ctx.chat_id)
 
     async def preview_handler(self, _: Message, ctx: BotContext):
         data = await ctx.state.get_data()
@@ -180,20 +190,7 @@ class TelegramRouter(BaseRouter):
             ctx.chat_id,
         )
 
-        topics = self.story_controller.suggest_on_this_day_events(message.reply_to_message.text)
-        await self.send_message(
-            topics,
-            ctx.chat_id,
-            buttons=prepare_buttons(
-                dict([
-                    ('1', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="1")),
-                    ('2', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="2")),
-                    ('3', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="3")),
-                    ('4', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="4")),
-                    ('5', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="5")),
-                ])
-            )
-        )
+        await self.__suggest_target_topics(message.reply_to_message.text, ctx)
 
         await self.__set_date(message.reply_to_message.text, ctx)
 
@@ -290,7 +287,7 @@ class TelegramRouter(BaseRouter):
                 await ctx.state.clear()
 
             case ForwardAction.SELECT_TARGET_TOPIC:
-                topics = query.message.text.split('\n\n')
+                topics = self.__split_target_topics(query.message.text)
                 await self.__add_target_topic(topics[int(callback_data.payload) - 1], ctx)
 
     async def send_morning_message(self):
@@ -300,9 +297,10 @@ class TelegramRouter(BaseRouter):
         for chat_id in self.config.USER_IDS_TO_SEND_MORNING_MSG:
             await self.telegram_service.send_message(chat_id, f'/story {formatted_date}')
 
-    async def __generate_story(self, date: str, ctx: BotContext, skip_status_messages: bool = False):
+    async def __generate_story(self, date: str, ctx: BotContext, skip_status_messages: bool = False) -> Optional[str]:
         if not validate_date(date):
-            return await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, ctx.chat_id)
+            await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, ctx.chat_id)
+            return
 
         if not skip_status_messages:
             await self.send_message(messages.STORY_GENERATION_IN_PROGRESS, ctx.chat_id)
@@ -324,7 +322,9 @@ class TelegramRouter(BaseRouter):
             )
         )
 
-    async def __generate_image_prompt(self, text: str, chat_id: int):
+        return story
+
+    async def __generate_image_prompt(self, text: str, chat_id: int) -> Optional[str]:
         await self.send_message(messages.IMAGE_PROMPT_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
 
         image_prompt = self.story_controller.suggest_story_prompt(text)
@@ -339,6 +339,8 @@ class TelegramRouter(BaseRouter):
                 }
             )
         )
+
+        return image_prompt
 
     async def __generate_image(self, image_prompt: str, chat_id: int):
         await self.send_message(messages.IMAGE_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
@@ -390,6 +392,24 @@ class TelegramRouter(BaseRouter):
         await ctx.state.update_data(target_topics=target_topics)
         await self.send_message(messages.REMEMBER_TARGET_TOPIC, ctx.chat_id)
 
+    async def __suggest_target_topics(self, date: str, ctx: BotContext) -> [str]:
+        topics = self.story_controller.suggest_on_this_day_events(date)
+        await self.send_message(
+            topics,
+            ctx.chat_id,
+            buttons=prepare_buttons(
+                dict([
+                    ('1', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="1")),
+                    ('2', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="2")),
+                    ('3', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="3")),
+                    ('4', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="4")),
+                    ('5', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="5")),
+                ])
+            )
+        )
+
+        return self.__split_target_topics(topics)
+
     async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, photo_name: str, ctx: BotContext):
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
             self.logger_service.info(
@@ -432,6 +452,10 @@ class TelegramRouter(BaseRouter):
             )
         except (ValueError, IndexError):
             return None
+
+    @staticmethod
+    def __split_target_topics(target_topics: str) -> [str]:
+        return target_topics.split('\n\n')
 
     async def __validate_story_date(self, message: Message, chat_id: int) -> bool:
         if not message.reply_to_message or not message.reply_to_message.text:
