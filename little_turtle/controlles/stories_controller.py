@@ -2,10 +2,8 @@ from typing import TypedDict, List, Optional
 
 from little_turtle.chains import (
     ImagePromptsGeneratorChain,
-    StorySummarizationChain,
     HistoricalEventsChain,
     ImageGeneratorChain,
-    StoryReviewerChain,
     TurtleStoryChain,
 )
 from little_turtle.services import AppConfig, HistoricalEventsService
@@ -23,20 +21,16 @@ class StoriesController:
             self,
             config: AppConfig,
             story_chain: TurtleStoryChain,
-            story_reviewer_chain: StoryReviewerChain,
             image_generator_chain: ImageGeneratorChain,
             historical_events_chain: HistoricalEventsChain,
             image_prompt_chain: ImagePromptsGeneratorChain,
-            story_summarization_chain: StorySummarizationChain,
             historical_events_service: HistoricalEventsService,
     ):
         self.config = config
         self.story_chain = story_chain
         self.historical_events_chain = historical_events_chain
         self.image_prompt_chain = image_prompt_chain
-        self.story_reviewer_chain = story_reviewer_chain
         self.image_generator_chain = image_generator_chain
-        self.story_summarization_chain = story_summarization_chain
         self.historical_events_service = historical_events_service
 
     def suggest_on_this_day_events(self, date: str) -> str:

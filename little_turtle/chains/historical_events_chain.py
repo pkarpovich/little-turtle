@@ -1,7 +1,6 @@
 from typing import TypedDict, List
 
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate, ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
 from langchain.schema.language_model import BaseLanguageModel
 
@@ -43,12 +42,6 @@ class HistoricalEventsChain:
         prompt = ChatPromptTemplate.from_template(DAY_EVENT_PICKER_PROMPT, template_format="jinja2")
 
         self.chain = prompt | llm | StrOutputParser()
-
-        self.llm_chain = LLMChain(
-            prompt=PromptTemplate.from_template(DAY_EVENT_PICKER_PROMPT, template_format="jinja2"),
-            llm=llm,
-            verbose=config.DEBUG
-        )
 
     def run(self, variables: HistoricalEventsChainVariables) -> str:
         return self.chain.invoke(variables)

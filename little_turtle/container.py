@@ -1,12 +1,10 @@
 import os
 
 from dependency_injector import containers, providers
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 from little_turtle.chains import (
     TurtleStoryChain,
-    StoryReviewerChain,
-    StorySummarizationChain,
     ImagePromptsGeneratorChain,
     ChainAnalytics,
     HistoricalEventsChain,
@@ -47,20 +45,8 @@ class Container(containers.DeclarativeContainer):
     chain_analytics = providers.Factory(ChainAnalytics, config=config)
 
     story_chain = providers.Factory(TurtleStoryChain, llm=llm, chain_analytics=chain_analytics, config=config)
-    story_reviewer_chain = providers.Factory(
-        StoryReviewerChain,
-        llm=llm,
-        config=config,
-        chain_analytics=chain_analytics,
-    )
     image_prompt_chain = providers.Factory(
         ImagePromptsGeneratorChain,
-        llm=llm,
-        config=config,
-        chain_analytics=chain_analytics,
-    )
-    story_summarization_chain = providers.Factory(
-        StorySummarizationChain,
         llm=llm,
         config=config,
         chain_analytics=chain_analytics,
@@ -77,10 +63,8 @@ class Container(containers.DeclarativeContainer):
         config=config,
         story_chain=story_chain,
         image_prompt_chain=image_prompt_chain,
-        story_reviewer_chain=story_reviewer_chain,
         image_generator_chain=image_generator_chain,
         historical_events_chain=historical_events_chain,
-        story_summarization_chain=story_summarization_chain,
         historical_events_service=historical_events_service,
     )
 
