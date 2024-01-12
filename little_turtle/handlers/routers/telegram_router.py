@@ -88,23 +88,22 @@ class TelegramRouter(BaseRouter):
 
         return self.router
 
-    async def story_handler(self, message: Message, ctx: BotContext):
-        date = message.text.split(' ')[-1]
+    async def story_handler(self, _: Message, ctx: BotContext):
+        last_scheduled_story_date = await self.telegram_service.get_last_scheduled_message_date(
+            self.config.CHAT_IDS_TO_SEND_STORIES[0]
+        )
 
-        if not date:
-            await ctx.state.clear()
-            await ctx.state.set_state(FormState.date)
+        if not last_scheduled_story_date:
             return await self.send_message(messages.ASK_DATE, ctx.chat_id)
 
-        if not await self.__set_date(date, ctx):
-            return
-
+        raw_next_story_date = last_scheduled_story_date + timedelta(days=1)
+        next_story_date = raw_next_story_date.strftime('%d.%m.%Y')
         await ctx.state.set_state(None)
 
-        topics = await self.__suggest_target_topics(date, ctx)
+        topics = await self.__suggest_target_topics(next_story_date, ctx)
         await self.__add_target_topic(topics[0], ctx)
 
-        story = await self.__generate_story(date, ctx)
+        story = await self.__generate_story(next_story_date, ctx)
         await self.__set_story(story, ctx)
 
         image_prompt = await self.__generate_image_prompt(story, ctx.chat_id)
@@ -291,11 +290,8 @@ class TelegramRouter(BaseRouter):
                 await self.__add_target_topic(topics[int(callback_data.payload) - 1], ctx)
 
     async def send_morning_message(self):
-        next_week_date = datetime.now() + timedelta(days=7)
-        formatted_date = next_week_date.strftime('%d.%m.%Y')
-
         for chat_id in self.config.USER_IDS_TO_SEND_MORNING_MSG:
-            await self.telegram_service.send_message(chat_id, f'/story {formatted_date}')
+            await self.telegram_service.send_message(chat_id, '/story')
 
     async def __generate_story(self, date: str, ctx: BotContext, skip_status_messages: bool = False) -> Optional[str]:
         if not validate_date(date):

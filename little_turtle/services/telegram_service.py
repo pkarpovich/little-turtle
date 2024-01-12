@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from tempfile import NamedTemporaryFile
-from typing import Union, BinaryIO
+from typing import Union, BinaryIO, Optional
 
 from telethon import TelegramClient
 
@@ -81,3 +81,14 @@ class TelegramService:
             })
 
         return chats
+
+    async def get_last_scheduled_message_date(self, chat_id: Union[str, int]) -> Optional[datetime]:
+        await self.ensure_connected()
+
+        async for msg in self.client.iter_messages(chat_id, reverse=False, scheduled=True, limit=1):
+            if not msg.message:
+                continue
+
+            return msg.date
+
+        return None
