@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from aiogram import Router, Bot
-from aiogram.types import InlineKeyboardMarkup, Message
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, Message
 
 
 class BaseRouter(ABC):
@@ -23,7 +23,7 @@ class BaseRouter(ABC):
             silent: bool = True,
             photo_url: str = None,
             show_typing: bool = False,
-            buttons: InlineKeyboardMarkup = None
+            buttons: InlineKeyboardMarkup | ReplyKeyboardMarkup = None
     ) -> Message:
         if show_typing:
             await self.bot.send_chat_action(chat_id, 'typing')

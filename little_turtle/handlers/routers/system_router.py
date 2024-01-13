@@ -1,9 +1,11 @@
 from aiogram import Router, Bot
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, ErrorEvent
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from little_turtle.constants import error_messages, messages
+from little_turtle.constants import error_messages, messages, ReplyKeyboardItems
 from little_turtle.services import LoggerService, AppConfig, ErrorHandlerService
+from little_turtle.utils import prepare_buttons
 from .base_router import BaseRouter
 
 
@@ -52,7 +54,14 @@ class SystemRouter(BaseRouter):
         await self.send_message(error_messages.UNHANDLED_ERROR, chat_id)
 
     async def start_handler(self, message: Message):
-        await self.send_message(messages.START_REPLY, message.chat.id)
+        buttons = prepare_buttons(
+            {action.value: None for action in ReplyKeyboardItems},
+            builder_type=ReplyKeyboardBuilder,
+            markup_args={'resize_keyboard': True},
+            auto_split_rows=False
+        )
+
+        await self.send_message(messages.START_REPLY, message.chat.id, buttons=buttons)
 
     async def handle_ping(self, message: Message):
         await self.send_message(messages.PONG_REPLY, message.chat.id)

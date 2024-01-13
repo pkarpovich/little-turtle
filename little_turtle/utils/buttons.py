@@ -1,21 +1,34 @@
+from typing import TypeVar
+
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+T = TypeVar('T')
 
-def prepare_buttons(buttons: dict[str, CallbackData]) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
+
+def prepare_buttons(
+        buttons: dict[str, CallbackData] | dict[str, None],
+        builder_type: T = InlineKeyboardBuilder,
+        markup_args: dict = None,
+        auto_split_rows: bool = True
+) -> InlineKeyboardMarkup | ReplyKeyboardMarkup:
+    builder = builder_type()
+    button = InlineKeyboardButton if isinstance(builder_type(), InlineKeyboardBuilder) else KeyboardButton
 
     for key, value in buttons.items():
-        builder.add(InlineKeyboardButton(
+        callback_data = value.pack() if isinstance(value, CallbackData) else None
+
+        builder.add(button(
+            callback_data=callback_data,
             text=key,
-            callback_data=value.pack()
         ))
 
-    row_lengths = split_buttons_to_rows(list(buttons.keys()))
-    builder.adjust(*row_lengths)
+    if auto_split_rows:
+        row_lengths = split_buttons_to_rows(list(buttons.keys()))
+        builder.adjust(*row_lengths)
 
-    return builder.as_markup()
+    return builder.as_markup(**markup_args) if markup_args else builder.as_markup()
 
 
 def split_buttons_to_rows(buttons: [str]) -> [int]:

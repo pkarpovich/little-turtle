@@ -11,7 +11,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, BufferedInputFile, CallbackQuery, URLInputFile
 
-from little_turtle.constants import error_messages, messages
+from little_turtle.constants import error_messages, messages, ReplyKeyboardItems
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_router import BaseRouter
@@ -84,9 +84,27 @@ class TelegramRouter(BaseRouter):
         self.router.message(Command("state"))(self.state_handler)
         self.router.message(Command("cancel"))(self.cancel_handler)
         self.router.message(FormState.date)(self.story_date_handler)
+        self.router.message()(self.handle_message)
         self.router.callback_query(ForwardCallback.filter())(self.forward_click_handler)
 
         return self.router
+
+    async def handle_message(self, message: Message, ctx: BotContext):
+        data = await ctx.state.get_data()
+
+        match message.text:
+            case ReplyKeyboardItems.STORY.value:
+                await self.__generate_story(data.get('date'), ctx)
+            case ReplyKeyboardItems.IMAGE_PROMPT.value:
+                await self.__generate_image_prompt(data.get('story'), ctx.chat_id)
+            case ReplyKeyboardItems.IMAGE.value:
+                await self.__generate_image(data.get('image_prompt'), ctx.chat_id)
+            case ReplyKeyboardItems.STATE.value:
+                await self.state_handler(message, ctx)
+            case ReplyKeyboardItems.PREVIEW.value:
+                await self.preview_handler(message, ctx)
+            case ReplyKeyboardItems.CANCEL.value:
+                await self.cancel_handler(message, ctx)
 
     async def story_handler(self, _: Message, ctx: BotContext):
         last_scheduled_story_date = await self.telegram_service.get_last_scheduled_message_date(
