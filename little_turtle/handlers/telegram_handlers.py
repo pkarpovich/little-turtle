@@ -44,7 +44,7 @@ class TelegramHandlers:
             self.story_controller
         )
         callback_query_handler_router = CallbackQueryHandlerRouter(self.bot, self.story_controller)
-        set_state_router = SetStateRouter(self.bot)
+        set_state_router = SetStateRouter(self.bot, self.story_controller)
 
         self.dp = Dispatcher(storage=storage)
         self.dp.update.outer_middleware()(context_middleware)

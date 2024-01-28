@@ -14,13 +14,12 @@ from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_stories_router import BaseStoriesRouter
 from little_turtle.handlers.routers.callback_data import ForwardCallback, ForwardAction
 from little_turtle.services import AppConfig, LoggerService, TelegramService
-from little_turtle.utils import prepare_buttons, validate_date, get_image_path, read_file_from_disk, pretty_print_json
+from little_turtle.utils import prepare_buttons, validate_date, get_image_path, read_file_from_disk
 
 
 class ImageCallback(CallbackData, prefix="turtle_image"):
     button: str
     message_id: str
-
 
 
 class FormState(StatesGroup):
@@ -50,14 +49,9 @@ class TelegramRouter(BaseStoriesRouter):
 
     def get_router(self) -> Router:
 
-        self.router.message(Command("add_target_topic"))(self.add_target_topic_handler)
-        self.router.message(Command("set_comment"))(self.set_comment)
-        self.router.message(Command("clear_comment"))(self.clear_comment)
         self.router.message(Command("story"))(self.story_handler)
         self.router.message(Command("preview"))(self.preview_handler)
         self.router.message(Command("schedule"))(self.schedule_handler)
-        self.router.message(Command("state"))(self.state_handler)
-        self.router.message(Command("cancel"))(self.cancel_handler)
         self.router.message()(self.handle_message)
 
         return self.router
@@ -130,20 +124,6 @@ class TelegramRouter(BaseStoriesRouter):
             reply_markup=prepare_buttons({'⏰': ForwardCallback(action=ForwardAction.SCHEDULE)})
         )
 
-    async def state_handler(self, _: Message, ctx: BotContext):
-        data = await ctx.state.get_data()
-        if not data:
-            return await self.send_message(messages.NO_STATE, ctx.chat_id)
-
-        await self.send_message(
-            pretty_print_json(data),
-            ctx.chat_id
-        )
-
-    async def cancel_handler(self, _: Message, ctx: BotContext):
-        await ctx.state.clear()
-        await self.send_message(messages.RESET_STORY, ctx.chat_id)
-
     async def set_date_handler(self, message: Message, ctx: BotContext):
         if not await self.__validate_story_date(message, ctx.chat_id):
             return
@@ -156,41 +136,6 @@ class TelegramRouter(BaseStoriesRouter):
         await self.__suggest_target_topics(message.reply_to_message.text, ctx)
 
         await self.__set_date(message.reply_to_message.text, ctx)
-
-    async def set_story_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_story_msg(message, ctx.chat_id):
-            return
-
-        await self.__set_story(message.reply_to_message.text, ctx)
-
-    async def set_image_prompt_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_image_prompt_msg(message, ctx.chat_id):
-            return
-
-        await self.__set_image_prompt(message.reply_to_message.text, ctx)
-
-    async def set_image_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_image_msg(message, ctx.chat_id):
-            return
-
-        await self.__set_image(message.reply_to_message.photo[-1].file_id, ctx)
-
-    async def add_target_topic_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_story_topic_msg(message, ctx.chat_id):
-            return
-
-        await self.__add_target_topic(message.reply_to_message.text, ctx)
-
-    async def set_comment(self, message: Message, ctx: BotContext):
-        if not message.reply_to_message or not message.reply_to_message.text:
-            return await self.send_message(error_messages.ERR_NO_REPLY_MSG, ctx.chat_id)
-
-        await ctx.state.update_data(comment=message.reply_to_message.text)
-        await self.send_message(messages.SET_COMMENT, ctx.chat_id)
-
-    async def clear_comment(self, _: Message, ctx: BotContext):
-        await ctx.state.update_data(comment=None)
-        await self.send_message(messages.CLEAR_COMMENT, ctx.chat_id)
 
     async def schedule_handler(self, message: Message, ctx: BotContext):
         raw_date = message.text.split(' ')[-1]
@@ -244,24 +189,6 @@ class TelegramRouter(BaseStoriesRouter):
 
         await ctx.state.update_data(target_topics=target_topics)
         await self.send_message(messages.REMEMBER_TARGET_TOPIC, ctx.chat_id)
-
-    async def __suggest_target_topics(self, date: str, ctx: BotContext) -> [str]:
-        topics = self.story_controller.suggest_on_this_day_events(date)
-        await self.send_message(
-            topics,
-            ctx.chat_id,
-            buttons=prepare_buttons(
-                dict([
-                    ('1', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="1")),
-                    ('2', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="2")),
-                    ('3', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="3")),
-                    ('4', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="4")),
-                    ('5', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="5")),
-                ])
-            )
-        )
-
-        return self.__split_target_topics(topics)
 
     async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, photo_name: str, ctx: BotContext):
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:

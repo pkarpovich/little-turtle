@@ -10,8 +10,7 @@ T = TypeVar('T')
 def prepare_buttons(
         buttons: dict[str, CallbackData] | dict[str, None],
         builder_type: T = InlineKeyboardBuilder,
-        markup_args: dict = None,
-        auto_split_rows: bool = True
+        markup_args: dict = None
 ) -> InlineKeyboardMarkup | ReplyKeyboardMarkup:
     builder = builder_type()
     button = InlineKeyboardButton if isinstance(builder_type(), InlineKeyboardBuilder) else KeyboardButton
@@ -23,10 +22,6 @@ def prepare_buttons(
             callback_data=callback_data,
             text=key,
         ))
-
-    # if auto_split_rows:
-    #     row_lengths = split_buttons_to_rows(list(buttons.keys()))
-    #     builder.adjust(*row_lengths)
 
     return builder.as_markup(**markup_args) if markup_args else builder.as_markup()
 

@@ -1,9 +1,7 @@
-from typing import Callable
-
 from aiogram import Bot, Router, F
 from aiogram.types import CallbackQuery
 
-from little_turtle.constants import Stickers, Reactions
+from little_turtle.constants import Reactions
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_stories_router import BaseStoriesRouter
@@ -30,6 +28,9 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         )
         self.router.callback_query(ForwardCallback.filter(set_filter))(self.set_query_handler)
 
+        topic_filter = F.action == ForwardAction.SELECT_TARGET_TOPIC
+        self.router.callback_query(ForwardCallback.filter(topic_filter))(self.set_topic_handler)
+
         return self.router
 
     async def regenerate_query_handler(
@@ -42,13 +43,13 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
 
         match callback_data.action:
             case ForwardAction.REGENERATE_STORY:
-                await self.__async_generate_action(ctx, self.generate_story)
+                await self.async_generate_action(ctx, self.generate_story)
 
             case ForwardAction.REGENERATE_IMAGE_PROMPT:
-                await self.__async_generate_action(ctx, self.generate_image_prompt)
+                await self.async_generate_action(ctx, self.generate_image_prompt)
 
             case ForwardAction.REGENERATE_IMAGE:
-                await self.__async_generate_action(ctx, self.generate_image)
+                await self.async_generate_action(ctx, self.generate_image)
 
         await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.SALUTE_FACE)
         await query.answer("Done!")
@@ -77,7 +78,8 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
         await query.answer("Done!")
 
-    async def __async_generate_action(self, ctx: BotContext, action: Callable):
-        msg = await self.bot.send_sticker(ctx.chat_id, Stickers.WIP)
-        await action(ctx)
-        await self.bot.delete_message(ctx.chat_id, msg.message_id)
+    async def set_topic_handler(self, query: CallbackQuery, callback_data: ForwardCallback, ctx: BotContext):
+        topics = query.message.text.split('\n\n')
+        topic = topics[int(callback_data.payload) - 1]
+
+        await self.add_target_topic(topic, ctx)

@@ -1,11 +1,12 @@
 from abc import abstractmethod
 from os import path
-from typing import Optional
+from typing import Optional, Callable
 from urllib.parse import urlparse
 
 from aiogram import Bot, Router
 from aiogram.types import URLInputFile
 
+from little_turtle.constants import Stickers, Reactions
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base_router import BaseRouter
@@ -22,6 +23,24 @@ class BaseStoriesRouter(BaseRouter):
     @abstractmethod
     def get_router(self) -> Router:
         pass
+
+    async def suggest_target_topics(self, ctx: BotContext) -> [str]:
+        topics = self.story_controller.suggest_on_this_day_events(ctx.message.reply_to_message.text)
+        await self.send_message(
+            topics,
+            ctx.chat_id,
+            buttons=prepare_buttons(
+                dict([
+                    ('1', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="1")),
+                    ('2', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="2")),
+                    ('3', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="3")),
+                    ('4', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="4")),
+                    ('5', ForwardCallback(action=ForwardAction.SELECT_TARGET_TOPIC, payload="5")),
+                ])
+            )
+        )
+
+        return topics.split('\n\n')
 
     async def generate_story(self, ctx: BotContext) -> Optional[str]:
         data = await ctx.state.get_data()
@@ -74,3 +93,17 @@ class BaseStoriesRouter(BaseRouter):
                 }
             )
         )
+
+    async def add_target_topic(self, topic, ctx: BotContext):
+        data = await ctx.state.get_data()
+
+        target_topics: [str] = data.get('target_topics') or list()
+        target_topics.append(topic)
+
+        await ctx.state.update_data(target_topics=target_topics)
+        await self.set_message_reaction(ctx.message.chat.id, ctx.message.message_id, Reactions.LIKE)
+
+    async def async_generate_action(self, ctx: BotContext, action: Callable):
+        msg = await self.bot.send_sticker(ctx.chat_id, Stickers.WIP)
+        await action(ctx)
+        await self.bot.delete_message(ctx.chat_id, msg.message_id)
