@@ -16,6 +16,7 @@ class SetStateRouter(BaseStoriesRouter):
         super().__init__(bot, story_controller)
 
     def get_router(self) -> Router:
+        self.router.message(Command("reset_target_topics"))(self.__reset_target_topics_handler)
         self.router.message(Command("set_image_prompt"))(self.__set_image_prompt_handler)
         self.router.message(Command("add_target_topic"))(self.__add_target_topic_handler)
         self.router.message(Command("suggest_topics"))(self.__suggest_topics_handler)
@@ -26,6 +27,10 @@ class SetStateRouter(BaseStoriesRouter):
         self.router.message(Command("state"))(self.__state_handler)
 
         return self.router
+
+    async def __reset_target_topics_handler(self, msg: Message, ctx: BotContext):
+        await ctx.state.update_data(target_topics=list())
+        await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
     async def __suggest_topics_handler(self, msg: Message, ctx: BotContext):
         if not await self.__validate_date(msg, msg.chat.id):

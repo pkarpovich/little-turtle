@@ -83,3 +83,4 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         topic = topics[int(callback_data.payload) - 1]
 
         await self.add_target_topic(topic, ctx)
+        await query.answer("Done!")
