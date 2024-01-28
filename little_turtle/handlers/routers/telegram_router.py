@@ -48,7 +48,6 @@ class TelegramRouter(BaseStoriesRouter):
         self.telegram_service = telegram_service
 
     def get_router(self) -> Router:
-
         self.router.message(Command("story"))(self.story_handler)
         self.router.message(Command("preview"))(self.preview_handler)
         self.router.message(Command("schedule"))(self.schedule_handler)
@@ -124,19 +123,6 @@ class TelegramRouter(BaseStoriesRouter):
             reply_markup=prepare_buttons({'⏰': ForwardCallback(action=ForwardAction.SCHEDULE)})
         )
 
-    async def set_date_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_story_date(message, ctx.chat_id):
-            return
-
-        await self.send_message(
-            messages.SUGGEST_TARGET_TOPICS,
-            ctx.chat_id,
-        )
-
-        await self.__suggest_target_topics(message.reply_to_message.text, ctx)
-
-        await self.__set_date(message.reply_to_message.text, ctx)
-
     async def schedule_handler(self, message: Message, ctx: BotContext):
         raw_date = message.text.split(' ')[-1]
 
@@ -163,9 +149,6 @@ class TelegramRouter(BaseStoriesRouter):
         await query.answer("Will be processed soon", )
 
         match callback_data.action:
-            case ForwardAction.TARGET_TOPIC:
-                await self.__add_target_topic(query.message.text, ctx)
-
             case ForwardAction.SCHEDULE:
                 photo, photo_name = await self.__get_file(query.message.photo[-1].file_id)
                 text = data.get('story')
@@ -173,22 +156,9 @@ class TelegramRouter(BaseStoriesRouter):
                 await self.__schedule_story(date, text, photo, photo_name, ctx)
                 await ctx.state.clear()
 
-            case ForwardAction.SELECT_TARGET_TOPIC:
-                topics = self.__split_target_topics(query.message.text)
-                await self.__add_target_topic(topics[int(callback_data.payload) - 1], ctx)
-
     async def send_morning_message(self):
         for chat_id in self.config.USER_IDS_TO_SEND_MORNING_MSG:
             await self.telegram_service.send_message(chat_id, '/story')
-
-    async def __add_target_topic(self, target_topic: str, ctx: BotContext):
-        data = await ctx.state.get_data()
-
-        target_topics: [str] = data.get('target_topics') or list()
-        target_topics.append(target_topic)
-
-        await ctx.state.update_data(target_topics=target_topics)
-        await self.send_message(messages.REMEMBER_TARGET_TOPIC, ctx.chat_id)
 
     async def __schedule_story(self, date: datetime, text: str, photo: BinaryIO, photo_name: str, ctx: BotContext):
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
@@ -232,46 +202,3 @@ class TelegramRouter(BaseStoriesRouter):
             )
         except (ValueError, IndexError):
             return None
-
-    @staticmethod
-    def __split_target_topics(target_topics: str) -> [str]:
-        return target_topics.split('\n\n')
-
-    async def __validate_story_date(self, message: Message, chat_id: int) -> bool:
-        if not message.reply_to_message or not message.reply_to_message.text:
-            await self.send_message(error_messages.ERR_NO_REPLY_DATE, chat_id)
-            return False
-
-        return True
-
-    async def __validate_story_msg(self, message: Message, chat_id: int) -> bool:
-        if not message.reply_to_message or not message.reply_to_message.text:
-            await self.send_message(error_messages.ERR_NO_REPLY_STORY, chat_id)
-            return False
-
-        return True
-
-    async def __validate_image_prompt_msg(self, message: Message, chat_id: int) -> bool:
-        if not message.reply_to_message or not message.reply_to_message.text:
-            await self.send_message(error_messages.ERR_NO_REPLY_IMAGE_PROMPT, chat_id)
-            return False
-
-        return True
-
-    async def __validate_image_msg(self, message: Message, chat_id: int) -> bool:
-        if (
-                not message.reply_to_message
-                or not message.reply_to_message.photo
-                or not len(message.reply_to_message.photo) > 1
-        ):
-            await self.send_message(error_messages.ERR_NO_REPLY_IMAGE, chat_id)
-            return False
-
-        return True
-
-    async def __validate_story_topic_msg(self, message: Message, chat_id: int) -> bool:
-        if not message.reply_to_message or not message.reply_to_message.text:
-            await self.send_message(error_messages.ERR_NO_REPLY_STORY_TOPIC, chat_id)
-            return False
-
-        return True
