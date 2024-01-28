@@ -4,6 +4,7 @@ ERR_NO_REPLY_IMAGE_PROMPT = "Please, reply to the text message with the image pr
 ERR_NO_REPLY_IMAGE = "Please, reply to the image message! 🐢🤔"
 ERR_NO_REPLY_STORY_TOPIC = "Please, reply to the text message with the story topic! 🐢🤔"
 ERR_INVALID_INPUT_DATE = "Sorry, I don't understand this date! 🐢🤔"
+ERR_DATE_IN_THE_PAST = "Sorry, I already prepared story for this date! 🐢🤔"
 ERR_INVALID_STORY = "Sorry, I don't have story! 🐢🤔"
 ERR_NO_STORY_PHOTO = "Sorry, I don't have photo for this story! 🐢🤔"
 ERR_INVALID_PHOTO = "Sorry, I can't recognize story photo! 🐢🤔"

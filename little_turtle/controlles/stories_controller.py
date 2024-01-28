@@ -1,4 +1,4 @@
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List
 
 from little_turtle.chains import (
     ImagePromptsGeneratorChain,
@@ -55,12 +55,10 @@ class StoriesController:
             self,
             date: str,
             target_topics: List[str],
-            generation_comment: Optional[str]
     ) -> str:
         return self.story_chain.run(
             self.story_chain.enrich_run_variables(
                 date,
                 target_topics,
-                generation_comment
             )
         )

@@ -1,4 +1,4 @@
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List
 
 from langchain.base_language import BaseLanguageModel
 from langchain_core.output_parsers import StrOutputParser
@@ -34,10 +34,8 @@ class TurtleStoryChain:
             self,
             date: str,
             target_topics: List[str],
-            generation_comment: Optional[str]
     ) -> TurtleStoryChainVariables:
         return TurtleStoryChainVariables(
-            comment=generation_comment,
             target_topics=target_topics,
             date=f"{date} ({get_day_of_week(date)})",
             language=self.config.GENERATION_LANGUAGE,

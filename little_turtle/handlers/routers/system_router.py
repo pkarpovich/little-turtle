@@ -41,6 +41,7 @@ class SystemRouter(BaseRouter):
         await self.send_message(error_messages.ERR_UNKNOWN_USER, message.chat.id)
 
     async def error_handler(self, event: ErrorEvent):
+        print(event.exception)
         self.logger_service.info("Error while handling update", exc_info=event.exception)
         self.error_handler_service.capture_exception(event.exception)
 

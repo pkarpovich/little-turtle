@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from aiogram import Router, Bot
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, Message
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, Message, ReactionTypeEmoji
 
 
 class BaseRouter(ABC):
@@ -14,6 +14,13 @@ class BaseRouter(ABC):
     @abstractmethod
     def get_router(self) -> Router:
         pass
+
+    async def set_message_reaction(self, chat_id: int, message_id: int, reaction: str):
+        await self.bot.set_message_reaction(
+            chat_id,
+            message_id,
+            [ReactionTypeEmoji(emoji=reaction)]
+        )
 
     async def send_message(
             self,

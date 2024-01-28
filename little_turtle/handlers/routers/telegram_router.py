@@ -1,20 +1,18 @@
-import os
 from datetime import datetime, timedelta, timezone
-from enum import Enum
 from os.path import basename
-from typing import Union, BinaryIO, Optional
-from urllib.parse import urlparse
+from typing import Union, BinaryIO
 
 from aiogram import Router, Bot
 from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, BufferedInputFile, CallbackQuery, URLInputFile
+from aiogram.types import Message, BufferedInputFile, CallbackQuery
 
 from little_turtle.constants import error_messages, messages, ReplyKeyboardItems
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
-from little_turtle.handlers.routers.base_router import BaseRouter
+from little_turtle.handlers.routers.base_stories_router import BaseStoriesRouter
+from little_turtle.handlers.routers.callback_data import ForwardCallback, ForwardAction
 from little_turtle.services import AppConfig, LoggerService, TelegramService
 from little_turtle.utils import prepare_buttons, validate_date, get_image_path, read_file_from_disk, pretty_print_json
 
@@ -23,23 +21,6 @@ class ImageCallback(CallbackData, prefix="turtle_image"):
     button: str
     message_id: str
 
-
-class ForwardAction(str, Enum):
-    SUGGEST_STORY = "suggest_story"
-    IMAGE_PROMPT = "image_prompt"
-    IMAGINE_STORY = "imagine_story"
-    SET_DATE = "set_date"
-    SET_STORY = "set_story"
-    SET_IMAGE_PROMPT = "set_image_prompt"
-    SET_IMAGE = "set_image"
-    SCHEDULE = "schedule"
-    TARGET_TOPIC = "target_topic"
-    SELECT_TARGET_TOPIC = "select_target_topic"
-
-
-class ForwardCallback(CallbackData, prefix="turtle_forward"):
-    action: ForwardAction
-    payload: Optional[str] = None
 
 
 class FormState(StatesGroup):
@@ -51,7 +32,7 @@ class FormState(StatesGroup):
     comment = State()
 
 
-class TelegramRouter(BaseRouter):
+class TelegramRouter(BaseStoriesRouter):
     def __init__(
             self,
             bot: Bot,
@@ -60,7 +41,7 @@ class TelegramRouter(BaseRouter):
             telegram_service: TelegramService,
             story_controller: StoriesController,
     ):
-        super().__init__(bot)
+        super().__init__(bot, story_controller)
 
         self.config = config_service
         self.logger_service = logger_service
@@ -68,13 +49,7 @@ class TelegramRouter(BaseRouter):
         self.telegram_service = telegram_service
 
     def get_router(self) -> Router:
-        self.router.message(Command("suggest_story"))(self.suggest_story_handler)
-        self.router.message(Command("suggest_story_prompt"))(self.suggest_story_prompt_handler)
-        self.router.message(Command("imagine_story"))(self.imagine_story_handler)
-        self.router.message(Command("set_date"))(self.set_date_handler)
-        self.router.message(Command("set_story"))(self.set_story_handler)
-        self.router.message(Command("set_image_prompt"))(self.set_image_prompt_handler)
-        self.router.message(Command("set_image"))(self.set_image_handler)
+
         self.router.message(Command("add_target_topic"))(self.add_target_topic_handler)
         self.router.message(Command("set_comment"))(self.set_comment)
         self.router.message(Command("clear_comment"))(self.clear_comment)
@@ -83,9 +58,7 @@ class TelegramRouter(BaseRouter):
         self.router.message(Command("schedule"))(self.schedule_handler)
         self.router.message(Command("state"))(self.state_handler)
         self.router.message(Command("cancel"))(self.cancel_handler)
-        self.router.message(FormState.date)(self.story_date_handler)
         self.router.message()(self.handle_message)
-        self.router.callback_query(ForwardCallback.filter())(self.forward_click_handler)
 
         return self.router
 
@@ -94,6 +67,7 @@ class TelegramRouter(BaseRouter):
 
         match message.text:
             case ReplyKeyboardItems.STORY.value:
+                await self.set_message_reaction(ctx.chat_id, ctx.message.message_id, '👍')
                 await self.__generate_story(data.get('date'), ctx)
             case ReplyKeyboardItems.IMAGE_PROMPT.value:
                 await self.__generate_image_prompt(data.get('story'), ctx.chat_id)
@@ -116,18 +90,17 @@ class TelegramRouter(BaseRouter):
 
         raw_next_story_date = last_scheduled_story_date + timedelta(days=1)
         next_story_date = raw_next_story_date.strftime('%d.%m.%Y')
-        await ctx.state.set_state(None)
 
         topics = await self.__suggest_target_topics(next_story_date, ctx)
         await self.__add_target_topic(topics[0], ctx)
 
-        story = await self.__generate_story(next_story_date, ctx)
-        await self.__set_story(story, ctx)
+        story = await self.generate_story(ctx)
+        await ctx.state.update_data(story=story)
 
-        image_prompt = await self.__generate_image_prompt(story, ctx.chat_id)
-        await self.__set_image_prompt(image_prompt, ctx)
+        image_prompt = await self.generate_image_prompt(ctx)
+        await ctx.state.update_data(image_prompt=image_prompt)
 
-        await self.__generate_image(image_prompt, ctx.chat_id)
+        await self.generate_image(ctx)
 
     async def preview_handler(self, _: Message, ctx: BotContext):
         data = await ctx.state.get_data()
@@ -170,33 +143,6 @@ class TelegramRouter(BaseRouter):
     async def cancel_handler(self, _: Message, ctx: BotContext):
         await ctx.state.clear()
         await self.send_message(messages.RESET_STORY, ctx.chat_id)
-
-    async def story_date_handler(self, message: Message, ctx: BotContext):
-        date = message.text
-
-        if not await self.__set_date(date, ctx):
-            return
-
-        await ctx.state.set_state(None)
-        await self.__generate_story(date, ctx)
-
-    async def suggest_story_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_story_date(message, ctx.chat_id):
-            return
-
-        await self.__generate_story(message.reply_to_message.text, ctx)
-
-    async def suggest_story_prompt_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_story_msg(message, ctx.chat_id):
-            return
-
-        await self.__generate_image_prompt(message.reply_to_message.text, ctx.chat_id)
-
-    async def imagine_story_handler(self, message: Message, ctx: BotContext):
-        if not await self.__validate_image_prompt_msg(message, ctx.chat_id):
-            return
-
-        await self.__generate_image(message.reply_to_message.text, ctx.chat_id)
 
     async def set_date_handler(self, message: Message, ctx: BotContext):
         if not await self.__validate_story_date(message, ctx.chat_id):
@@ -268,31 +214,10 @@ class TelegramRouter(BaseRouter):
         await self.__schedule_story(date, text, photo, photo_name, ctx)
 
     async def forward_click_handler(self, query: CallbackQuery, callback_data: ForwardCallback, ctx: BotContext):
-        await query.answer(messages.ACTION_IN_PROGRESS)
         data = await ctx.state.get_data()
+        await query.answer("Will be processed soon", )
 
         match callback_data.action:
-            case ForwardAction.SUGGEST_STORY:
-                await self.__generate_story(data.get('date'), ctx)
-
-            case ForwardAction.IMAGE_PROMPT:
-                await self.__generate_image_prompt(data.get('story'), ctx.chat_id)
-
-            case ForwardAction.IMAGINE_STORY:
-                await self.__generate_image(data.get('image_prompt'), ctx.chat_id)
-
-            case ForwardAction.SET_DATE:
-                await self.__set_date(query.message.text, ctx)
-
-            case ForwardAction.SET_STORY:
-                await self.__set_story(query.message.text, ctx)
-
-            case ForwardAction.SET_IMAGE_PROMPT:
-                await self.__set_image_prompt(query.message.text, ctx)
-
-            case ForwardAction.SET_IMAGE:
-                await self.__set_image(query.message.photo[-1].file_id, ctx)
-
             case ForwardAction.TARGET_TOPIC:
                 await self.__add_target_topic(query.message.text, ctx)
 
@@ -310,92 +235,6 @@ class TelegramRouter(BaseRouter):
     async def send_morning_message(self):
         for chat_id in self.config.USER_IDS_TO_SEND_MORNING_MSG:
             await self.telegram_service.send_message(chat_id, '/story')
-
-    async def __generate_story(self, date: str, ctx: BotContext, skip_status_messages: bool = False) -> Optional[str]:
-        if not validate_date(date):
-            await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, ctx.chat_id)
-            return
-
-        if not skip_status_messages:
-            await self.send_message(messages.STORY_GENERATION_IN_PROGRESS, ctx.chat_id)
-
-        data = await ctx.state.get_data()
-        target_topics = data.get('target_topics', list())
-        generation_comment = data.get('comment', "")
-
-        story = self.story_controller.suggest_story(date, target_topics, generation_comment)
-        await self.send_message(
-            story,
-            chat_id=ctx.chat_id,
-            buttons=prepare_buttons(
-                {
-                    '🔁': ForwardCallback(action=ForwardAction.SUGGEST_STORY),
-                    '🌠': ForwardCallback(action=ForwardAction.IMAGE_PROMPT),
-                    '🎯': ForwardCallback(action=ForwardAction.SET_STORY),
-                }
-            )
-        )
-
-        return story
-
-    async def __generate_image_prompt(self, text: str, chat_id: int) -> Optional[str]:
-        await self.send_message(messages.IMAGE_PROMPT_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
-
-        image_prompt = self.story_controller.suggest_story_prompt(text)
-        await self.send_message(
-            image_prompt,
-            chat_id=chat_id,
-            buttons=prepare_buttons(
-                {
-                    '🔁': ForwardCallback(action=ForwardAction.IMAGE_PROMPT),
-                    '🎨': ForwardCallback(action=ForwardAction.IMAGINE_STORY),
-                    '🎯': ForwardCallback(action=ForwardAction.SET_IMAGE_PROMPT),
-                }
-            )
-        )
-
-        return image_prompt
-
-    async def __generate_image(self, image_prompt: str, chat_id: int):
-        await self.send_message(messages.IMAGE_GENERATION_IN_PROGRESS, chat_id, show_typing=True)
-
-        image_url = self.story_controller.imagine_story(image_prompt)
-
-        image = URLInputFile(image_url, filename=os.path.basename(urlparse(image_url).path))
-        return await self.bot.send_photo(
-            chat_id,
-            image,
-            reply_markup=prepare_buttons(
-                {
-                    '🔁': ForwardCallback(action=ForwardAction.IMAGINE_STORY),
-                    '🎯': ForwardCallback(action=ForwardAction.SET_IMAGE),
-                }
-            )
-        )
-
-    async def __set_date(self, date: str, ctx: BotContext) -> bool:
-        if not validate_date(date):
-            await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, ctx.chat_id)
-            return False
-
-        await ctx.state.update_data(date=date)
-        await self.send_message(messages.REMEMBER_INPUT_DATE, ctx.chat_id)
-
-        return True
-
-    async def __set_story(self, story: str, ctx: BotContext):
-        await ctx.state.update_data(story=story)
-        await self.send_message(messages.REMEMBER_INPUT_STORY, ctx.chat_id)
-
-    async def __set_image_prompt(self, image_prompt: str, ctx: BotContext):
-        await ctx.state.update_data(image_prompt=image_prompt)
-        await self.send_message(messages.REMEMBER_INPUT_IMAGE_PROMPT, ctx.chat_id)
-
-    async def __set_image(self, file_id: str, ctx: BotContext):
-        image_path = await self.__save_file_to_disk(file_id)
-
-        await ctx.state.update_data(image=image_path)
-        await self.send_message(messages.REMEMBER_INPUT_IMAGE, ctx.chat_id)
 
     async def __add_target_topic(self, target_topic: str, ctx: BotContext):
         data = await ctx.state.get_data()

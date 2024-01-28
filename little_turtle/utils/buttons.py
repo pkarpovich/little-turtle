@@ -24,9 +24,9 @@ def prepare_buttons(
             text=key,
         ))
 
-    if auto_split_rows:
-        row_lengths = split_buttons_to_rows(list(buttons.keys()))
-        builder.adjust(*row_lengths)
+    # if auto_split_rows:
+    #     row_lengths = split_buttons_to_rows(list(buttons.keys()))
+    #     builder.adjust(*row_lengths)
 
     return builder.as_markup(**markup_args) if markup_args else builder.as_markup()
 

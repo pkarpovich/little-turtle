@@ -12,3 +12,10 @@ def validate_date(date: str) -> bool:
         return True
     except (ValueError, TypeError):
         return False
+
+
+def parse_date(date: str) -> datetime | None:
+    try:
+        return datetime.strptime(date, '%d.%m.%Y')
+    except (ValueError, IndexError):
+        return None
