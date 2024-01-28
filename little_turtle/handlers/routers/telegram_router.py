@@ -11,7 +11,7 @@ from aiogram.types import Message, BufferedInputFile, CallbackQuery
 from little_turtle.constants import error_messages, messages, ReplyKeyboardItems
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
-from little_turtle.handlers.routers.base_stories_router import BaseStoriesRouter
+from little_turtle.handlers.routers.base.base_stories_router import BaseStoriesRouter
 from little_turtle.handlers.routers.callback_data import ForwardCallback, ForwardAction
 from little_turtle.services import AppConfig, LoggerService, TelegramService
 from little_turtle.utils import prepare_buttons, validate_date, get_image_path, read_file_from_disk

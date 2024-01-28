@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from little_turtle.constants import Reactions
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
-from little_turtle.handlers.routers.base_stories_router import BaseStoriesRouter
+from little_turtle.handlers.routers.base.base_stories_router import BaseStoriesRouter
 from little_turtle.handlers.routers.callback_data import ForwardAction, ForwardCallback
 
 

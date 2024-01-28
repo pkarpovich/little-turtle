@@ -4,9 +4,9 @@ from aiogram.types import Message, ErrorEvent
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from little_turtle.constants import error_messages, messages, ReplyKeyboardItems
+from little_turtle.handlers.routers.base.base_router import BaseRouter
 from little_turtle.services import LoggerService, AppConfig, ErrorHandlerService
 from little_turtle.utils import prepare_buttons
-from .base_router import BaseRouter
 
 
 class SystemRouter(BaseRouter):

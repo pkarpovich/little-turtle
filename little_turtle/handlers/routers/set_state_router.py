@@ -7,7 +7,7 @@ from aiogram.types import Message
 from little_turtle.constants import Reactions, error_messages, messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
-from little_turtle.handlers.routers.base_stories_router import BaseStoriesRouter
+from little_turtle.handlers.routers.base.base_stories_router import BaseStoriesRouter
 from little_turtle.utils import validate_date, parse_date, pretty_print_json
 
 
