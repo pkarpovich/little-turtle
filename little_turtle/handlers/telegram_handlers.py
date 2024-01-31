@@ -5,9 +5,8 @@ from redis import asyncio as redis
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers import SchedulerHandler
 from little_turtle.handlers.middlewares import context_middleware
-from little_turtle.handlers.routers import SystemRouter, TelegramRouter
+from little_turtle.handlers.routers import SystemRouter, AdminCommandsRouter, SetStateRouter
 from little_turtle.handlers.routers.callback_query_handler_router import CallbackQueryHandlerRouter
-from little_turtle.handlers.routers.set_state_router import SetStateRouter
 from little_turtle.services import AppConfig, LoggerService, TelegramService, ErrorHandlerService
 
 
@@ -36,24 +35,29 @@ class TelegramHandlers:
         self.bot = Bot(config.TELEGRAM_BOT_TOKEN)
 
         system_router = SystemRouter(self.bot, self.logger_service, self.config, self.error_handler_service)
-        telegram_router = TelegramRouter(
+        admin_commands = AdminCommandsRouter(
             self.bot,
             self.config,
-            self.logger_service,
             self.telegram_service,
             self.story_controller
         )
-        callback_query_handler_router = CallbackQueryHandlerRouter(self.bot, self.story_controller)
-        set_state_router = SetStateRouter(self.bot, self.story_controller)
+        callback_query_handler_router = CallbackQueryHandlerRouter(
+            self.bot,
+            self.story_controller,
+            config_service=self.config,
+            logger_service=self.logger_service,
+            telegram_service=self.telegram_service
+        )
+        set_state_router = SetStateRouter(self.bot, self.story_controller, self.config)
 
         self.dp = Dispatcher(storage=storage)
         self.dp.update.outer_middleware()(context_middleware)
         self.dp.include_router(system_router.get_router())
         self.dp.include_router(set_state_router.get_router())
+        self.dp.include_router(admin_commands.get_router())
         self.dp.include_router(callback_query_handler_router.get_router())
-        self.dp.include_router(telegram_router.get_router())
 
-        self.scheduler_handler = SchedulerHandler(telegram_router.send_morning_message)
+        self.scheduler_handler = SchedulerHandler(admin_commands.send_morning_message)
 
     async def run(self):
         self.logger_service.info("Telegram turtle is all set and eager to assist! 🐢📲 Just send a command!")

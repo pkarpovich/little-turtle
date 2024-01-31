@@ -59,7 +59,6 @@ class SystemRouter(BaseRouter):
             {action.value: None for action in ReplyKeyboardItems},
             builder_type=ReplyKeyboardBuilder,
             markup_args={'resize_keyboard': True},
-            auto_split_rows=False
         )
 
         await self.send_message(messages.START_REPLY, message.chat.id, buttons=buttons)

@@ -8,12 +8,15 @@ from little_turtle.constants import Reactions, error_messages, messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base.base_stories_router import BaseStoriesRouter
+from little_turtle.services import AppConfig
 from little_turtle.utils import validate_date, parse_date, pretty_print_json
 
 
 class SetStateRouter(BaseStoriesRouter):
-    def __init__(self, bot: Bot, story_controller: StoriesController):
-        super().__init__(bot, story_controller)
+    def __init__(self, bot: Bot, story_controller: StoriesController, config_service: AppConfig):
+        super().__init__(bot, story_controller, config_service)
+
+        self.config = config_service
 
     def get_router(self) -> Router:
         self.router.message(Command("reset_target_topics"))(self.__reset_target_topics_handler)
@@ -44,6 +47,7 @@ class SetStateRouter(BaseStoriesRouter):
             return
 
         await self.add_target_topic(msg.reply_to_message.text, ctx)
+        await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
     async def __set_date_handler(self, msg: Message, ctx: BotContext):
         if not await self.__validate_date(msg, msg.chat.id):
@@ -77,7 +81,9 @@ class SetStateRouter(BaseStoriesRouter):
             await self.send_message(error_messages.ERR_NO_REPLY_IMAGE, msg.chat.id)
             return
 
-        await ctx.state.update_data(image=msg.photo[-1].file_id)
+        image_path = await self.save_file_to_disk(msg.reply_to_message.photo[-1].file_id)
+
+        await ctx.state.update_data(image=image_path)
         await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
     async def __state_handler(self, _: Message, ctx: BotContext):
