@@ -13,6 +13,8 @@ from little_turtle.chains import (
 from little_turtle.controlles import StoriesController
 from little_turtle.database import Database
 from little_turtle.handlers import TelegramHandlers
+from little_turtle.handlers.routers import SystemRouter, AdminCommandsRouter, SetStateRouter
+from little_turtle.handlers.routers.callback_query_handler_router import CallbackQueryHandlerRouter
 from little_turtle.services import (
     AppConfig,
     LoggerService,
@@ -71,8 +73,35 @@ class Container(containers.DeclarativeContainer):
     telegram_handlers = providers.Factory(
         TelegramHandlers,
         config=config,
-        error_handler_service=error_handler_service,
-        stories_controller=stories_controller,
-        telegram_service=telegram_service,
         logger_service=logger_service,
+    )
+    bot = providers.Callable(lambda telegram_handlers: telegram_handlers.bot, telegram_handlers=telegram_handlers)
+
+    system_router = providers.Factory(
+        SystemRouter,
+        bot=bot,
+        config_service=config,
+        logger_service=logger_service,
+        error_handler_service=error_handler_service,
+    )
+    admin_commands_router = providers.Factory(
+        AdminCommandsRouter,
+        bot=bot,
+        config_service=config,
+        telegram_service=telegram_service,
+        story_controller=stories_controller,
+    )
+    callback_query_handler_router = providers.Factory(
+        CallbackQueryHandlerRouter,
+        bot=bot,
+        config_service=config,
+        logger_service=logger_service,
+        telegram_service=telegram_service,
+        story_controller=stories_controller,
+    )
+    set_state_router = providers.Factory(
+        SetStateRouter,
+        bot=bot,
+        config_service=config,
+        story_controller=stories_controller,
     )
