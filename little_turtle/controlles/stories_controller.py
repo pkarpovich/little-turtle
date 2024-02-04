@@ -1,3 +1,4 @@
+from datetime import timedelta, datetime
 from typing import TypedDict, List
 
 from little_turtle.chains import (
@@ -6,7 +7,7 @@ from little_turtle.chains import (
     ImageGeneratorChain,
     TurtleStoryChain,
 )
-from little_turtle.services import AppConfig, HistoricalEventsService
+from little_turtle.services import AppConfig, HistoricalEventsService, TelegramService
 from little_turtle.utils import remove_optional_last_period
 
 
@@ -25,6 +26,7 @@ class StoriesController:
             historical_events_chain: HistoricalEventsChain,
             image_prompt_chain: ImagePromptsGeneratorChain,
             historical_events_service: HistoricalEventsService,
+            telegram_service: TelegramService,
     ):
         self.config = config
         self.story_chain = story_chain
@@ -32,6 +34,7 @@ class StoriesController:
         self.image_prompt_chain = image_prompt_chain
         self.image_generator_chain = image_generator_chain
         self.historical_events_service = historical_events_service
+        self.telegram_service = telegram_service
 
     def suggest_on_this_day_events(self, date: str) -> str:
         events = self.historical_events_service.get_by_date(date)
@@ -62,3 +65,11 @@ class StoriesController:
                 target_topics,
             )
         )
+
+    async def get_next_story_date(self) -> str:
+        last_scheduled_story_date = await self.telegram_service.get_last_scheduled_message_date(
+            self.config.CHAT_IDS_TO_SEND_STORIES[0]
+        ) or datetime.now()
+
+        raw_next_story_date = last_scheduled_story_date + timedelta(days=1)
+        return raw_next_story_date.strftime('%d.%m.%Y')

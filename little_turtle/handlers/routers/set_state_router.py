@@ -13,16 +13,23 @@ from little_turtle.utils import validate_date, parse_date, pretty_print_json
 
 
 class SetStateRouter(BaseStoriesRouter):
-    def __init__(self, bot: Bot, story_controller: StoriesController, config_service: AppConfig):
+    def __init__(
+            self,
+            bot: Bot,
+            story_controller: StoriesController,
+            config_service: AppConfig,
+    ):
         super().__init__(bot, story_controller, config_service)
 
         self.config = config_service
+        self.story_controller = story_controller
 
     def get_router(self) -> Router:
         self.router.message(Command("reset_target_topics"))(self.__reset_target_topics_handler)
         self.router.message(Command("set_image_prompt"))(self.__set_image_prompt_handler)
         self.router.message(Command("add_target_topic"))(self.__add_target_topic_handler)
         self.router.message(Command("suggest_topics"))(self.__suggest_topics_handler)
+        self.router.message(Command("get_next_date"))(self.__get_next_date)
         self.router.message(Command("set_image"))(self.__set_image_handler)
         self.router.message(Command("set_story"))(self.__set_story_handler)
         self.router.message(Command("set_date"))(self.__set_date_handler)
@@ -95,6 +102,11 @@ class SetStateRouter(BaseStoriesRouter):
             pretty_print_json(data),
             ctx.chat_id
         )
+
+    async def __get_next_date(self, _: Message, ctx: BotContext):
+        next_story_date = await self.story_controller.get_next_story_date()
+
+        await self.send_message(next_story_date, ctx.chat_id)
 
     async def __cancel_handler(self, msg: Message, ctx: BotContext):
         await ctx.state.clear()

@@ -64,6 +64,7 @@ class Container(containers.DeclarativeContainer):
         StoriesController,
         config=config,
         story_chain=story_chain,
+        telegram_service=telegram_service,
         image_prompt_chain=image_prompt_chain,
         image_generator_chain=image_generator_chain,
         historical_events_chain=historical_events_chain,
