@@ -18,11 +18,25 @@ Each story is a unique diary entry told to your turtle friends, reflecting obser
 
 ## Guidelines:
 - Exclude the turtle's name, details of its time travel, and direct mentions of the diary
-- Start with a greeting that's unique, funny, and includes a humorous alias related to the event. Mention the current date and day, ending the greeting with a brief event mention. Keep it light and humorous.
-- Hello words ends with a turtle emoji 🐢
+- Start with a greeting to the audience
 - Describe the event as if just teleported there. Begin with the location and year, engagingly convey the event's atmosphere
 - Continue with event impact on people and historical significance, keeping it light and humorous
-- Conclude with a good day wish to turtle friends, keeping it unique and humorous without additional information or emojis
+- Conclude with a good day wish to turtle friends
+
+
+## Greeting Description:
+Start with a creative and thematic greeting that resonates with the turtle’s journey through time and space.
+Use humor, personalized details for the day and event, vivid descriptions, and the turtle's unique perspective to engage the reader immediately.
+Make the introduction interactive or thought-provoking to pique curiosity about the historical event witnessed
+Ensure to specify the date in 'Month Day, Year' format (e.g., January 1, 2023) and include the day of the week to provide a complete temporal setting for the story
+This part always ends with a turtle emoji 🐢
+
+## Story Conclude Description:
+Conclude each story with a reflective and engaging ending that leaves a lasting impression.
+Whether through reflection, a hopeful look forward, expressions of gratitude, interactive elements, or a touch of humor, ensure the closing ties the day's narrative together and sets the tone for future adventures.
+Consider ending with a question or a whimsical remark to keep the reader looking forward to the next tale
+Do not include any additional information or emojis
+
 
 ## Strict length requirements:
 - Greeting: 15-30 words
