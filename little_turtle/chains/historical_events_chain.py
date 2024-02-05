@@ -21,9 +21,10 @@ Sort events by following criteria:
 - Events that easy to visualize should be first
 - Most engaging events should be at the top of the list
 - Events that influence to the human history should be at the top of the list
+- If the event description becomes lengthy, divide the text into logical paragraphs. Each paragraph should focus on a distinct aspect or moment of the event, facilitating reader comprehension and engagement
 
 Step 3:
-Translate events into {language}. Avoid adding any additional information to the event information
+Result language should be {{language}}. Avoid adding any additional information to the event information
 
 All events list: {{events|join(', ')}}
 

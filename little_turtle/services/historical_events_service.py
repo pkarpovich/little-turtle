@@ -4,7 +4,7 @@ import requests
 
 
 class HistoricalEventsService:
-    url = 'https://api.wikimedia.org/feed/v1/wikipedia/ru/onthisday/events'
+    url = 'https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events'
 
     @staticmethod
     def get_by_date(date: str) -> list[str]:
