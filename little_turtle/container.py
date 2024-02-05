@@ -34,7 +34,7 @@ class Container(containers.DeclarativeContainer):
     db = providers.Callable(lambda database: database.db, database=database)
 
     error_handler_service = providers.Singleton(ErrorHandlerService, config=config, logger_service=logger_service)
-    telegram_service = providers.Factory(TelegramService, config=config)
+    telegram_service = providers.Singleton(TelegramService, config=config)
     historical_events_service = providers.Factory(HistoricalEventsService)
 
     story_store = providers.Factory(StoryStore, db=db)
