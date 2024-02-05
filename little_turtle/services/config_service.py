@@ -9,11 +9,6 @@ class AppConfig:
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = "gpt-4"
 
-    MONGODB_URI: str
-    MONGODB_USERNAME: str
-    MONGODB_PASSWORD: str
-    MONGODB_DB_NAME: str = "little_turtle"
-
     REDIS_URL: str = "redis://localhost:6379/0"
     BASE_IMAGE_FOLDER: str = "/app/little_turtle/images"
 

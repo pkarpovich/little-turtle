@@ -15,9 +15,6 @@ services:
       TELEGRAM_ALLOWED_USERS: ${TELEGRAM_ALLOWED_USERS}
       USER_IDS_TO_SEND_MORNING_MSG: ${USER_IDS_TO_SEND_MORNING_MSG}
       CHAT_IDS_TO_SEND_STORIES: ${CHAT_IDS_TO_SEND_STORIES}
-      MONGODB_URI: ${MONGODB_URI}
-      MONGODB_USERNAME: ${MONGODB_USERNAME}
-      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
       REDIS_URL: ${REDIS_URL}
       ERROR_HANDLER_ENABLED: ${ERROR_HANDLER_ENABLED}
       ERROR_HANDLER_DNS: ${ERROR_HANDLER_DNS}
@@ -30,21 +27,7 @@ services:
       - ./little_turtle/services/little_turtle.session:/app/little_turtle/services/little_turtle.session
       - story-images:/app/little_turtle/images
     depends_on:
-      - story-store
-
-  story-store:
-    container_name: story-store
-    image: mongo:4.4-bionic
-    ports:
-      - 27666:27017
-    expose:
-      - 27017
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-    volumes:
-      - story-store-data:/data/db
+      - story-cache
 
   story-cache:
     container_name: story-cache
@@ -54,6 +37,5 @@ services:
       - 6379:6379
 
 volumes:
-  story-store-data:
   story-images:
   langfuse-db-data:

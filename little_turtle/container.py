@@ -11,7 +11,6 @@ from little_turtle.chains import (
     ImageGeneratorChain,
 )
 from little_turtle.controlles import StoriesController
-from little_turtle.database import Database
 from little_turtle.handlers import TelegramHandlers
 from little_turtle.handlers.routers import SystemRouter, AdminCommandsRouter, SetStateRouter
 from little_turtle.handlers.routers.callback_query_handler_router import CallbackQueryHandlerRouter
@@ -22,22 +21,16 @@ from little_turtle.services import (
     ErrorHandlerService,
     HistoricalEventsService
 )
-from little_turtle.stores import StoryStore
 
 
 class Container(containers.DeclarativeContainer):
     logger_service = providers.Factory(LoggerService)
 
     config = providers.Factory(AppConfig, env=os.environ)
-    database = providers.Singleton(Database, config=config)
-
-    db = providers.Callable(lambda database: database.db, database=database)
 
     error_handler_service = providers.Singleton(ErrorHandlerService, config=config, logger_service=logger_service)
     telegram_service = providers.Singleton(TelegramService, config=config)
     historical_events_service = providers.Factory(HistoricalEventsService)
-
-    story_store = providers.Factory(StoryStore, db=db)
 
     model_name = providers.Callable(lambda config: config.OPENAI_MODEL, config=config)
     openai_api_key = providers.Callable(lambda config: config.OPENAI_API_KEY, config=config)
