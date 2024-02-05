@@ -1,5 +1,5 @@
 # Little Turtle
-Little Turtle, an AI-powered Telegram bot designed to engage users with stories generated from the perspective of a time-traveling turtle. This innovative bot not only shares tales woven around historical events but also enhances storytelling with generated images, accuracy reviews, and concise summaries. Aimed at merging education with entertainment, Little Turtle offers an interactive way to explore history through storytelling
+An AI-powered Telegram bot designed to engage users with stories generated from the perspective of a time-traveling turtle. This innovative bot not only shares tales woven around historical events but also enhances storytelling with generated images, accuracy reviews, and concise summaries. Aimed at merging education with entertainment, Little Turtle offers an interactive way to explore history through storytelling
 
 ![Little Turtle](assets/little_turtle_logo.jpeg)
 
