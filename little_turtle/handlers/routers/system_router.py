@@ -41,8 +41,7 @@ class SystemRouter(BaseRouter):
         await self.send_message(error_messages.ERR_UNKNOWN_USER, message.chat.id)
 
     async def error_handler(self, event: ErrorEvent):
-        print(event.exception)
-        self.logger_service.info("Error while handling update", exc_info=event.exception)
+        self.logger_service.error("Error while handling update", exc_info=event.exception)
         self.error_handler_service.capture_exception(event.exception)
 
         if event.update.callback_query is not None:
@@ -52,7 +51,7 @@ class SystemRouter(BaseRouter):
         else:
             return
 
-        await self.send_message(error_messages.UNHANDLED_ERROR, chat_id)
+        await self.send_message(error_messages.UNHANDLED_ERROR(event.exception), chat_id)
 
     async def start_handler(self, message: Message):
         buttons = prepare_buttons(

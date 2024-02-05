@@ -44,6 +44,8 @@ class AppConfig:
 
     APPLICATION_TZ: str = "Europe/Warsaw"
     DEBUG: bool = False
+    LOGS_LEVEL: str = "INFO"
+    DEV_LOGS: bool = False
 
     def __init__(self, env):
         for field in self.__annotations__:
