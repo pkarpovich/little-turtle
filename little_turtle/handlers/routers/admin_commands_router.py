@@ -50,6 +50,7 @@ class AdminCommandsRouter(BaseStoriesRouter):
     async def story_handler(self, _: Message, ctx: BotContext):
         next_story_date = await self.story_controller.get_next_story_date()
         await ctx.state.update_data(date=next_story_date)
+        await self.send_message(next_story_date, ctx.chat_id)
 
         topics = await self.suggest_target_topics(ctx)
         await self.add_target_topic(topics[0], ctx)

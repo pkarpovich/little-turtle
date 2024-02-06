@@ -27,7 +27,10 @@ class BaseStoriesRouter(BaseRouter):
         pass
 
     async def suggest_target_topics(self, ctx: BotContext) -> [str]:
-        topics_str = self.story_controller.suggest_on_this_day_events(ctx.message.reply_to_message.text)
+        data = await ctx.state.get_data()
+        date = data.get('date')
+
+        topics_str = self.story_controller.suggest_on_this_day_events(date or ctx.message.reply_to_message.text)
         topics = topics_str.split('\n\n')
 
         buttons = {
