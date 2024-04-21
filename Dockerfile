@@ -1,56 +1,49 @@
-ARG PYTHON_VERSION=3.11.5
+ARG PYTHON_VERSION=3.11
 FROM python:${PYTHON_VERSION}-slim-bookworm as base
 
 ENV \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    POETRY_VERSION=1.6.1 \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache \
     PYTHONWARNINGS="ignore::DeprecationWarning" \
-    VENV_PATH="/opt/venv" \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/root/.cargo/bin:$PATH"
 
 RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/root/.cache/pip \
     set -ex \
-    # Create a non-root user
-    && addgroup --system --gid 1001 appgroup \
-    && adduser --system --uid 1001 --gid 1001 --no-create-home appuser \
     # Upgrade the package index and install security upgrades
-    && apt-get update \
-    && apt-get upgrade -y \
-    # Install dependencies \
-    && pip install --upgrade pip \
+    && apt update \
+    && apt upgrade -y \
+    && apt install -y curl \
     # Clean up
-    && apt-get autoremove -y \
-    && apt-get clean -y \
+    && apt autoremove -y \
+    && apt clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-ENV LANG ru_RU.UTF-8
-ENV LC_ALL ru_RU.UTF-8
-RUN python -m venv /opt/venv
+ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
+RUN /install.sh && rm /install.sh
 
 
-FROM base as builder
-
-RUN pip install poetry==${POETRY_VERSION}
+FROM base as dependencies
 
 WORKDIR /app
-COPY ./pyproject.toml ./poetry.lock ./
-RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-dev --no-root
+RUN uv venv
+RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    --mount=type=cache,target=/root/.cache/uv \
+    uv pip sync requirements.txt
 
 
-FROM base as runtime
-
-ENV PYTHONPATH="/app:${PYTHONPATH}"
+FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /app
+ENV \
+    LANG=ru_RU.UTF-8 \
+    LC_ALL=ru_RU.UTF-8 \
+    PYTHONPATH="/app:${PYTHONPATH}" \
+    PATH="/app/.venv/bin:$PATH"
+RUN addgroup --system --gid 1001 appgroup \
+    && adduser --system --uid 1001 --gid 1001 --no-create-home appuser
 
-COPY --from=builder /opt/venv/ /opt/venv/
+COPY --from=dependencies /app/.venv /app/.venv
 COPY . .
 
 RUN mkdir -p /app/little_turtle/images
@@ -59,3 +52,5 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 CMD python little_turtle/main.py
+# Run infinite loop to keep container running
+#CMD tail -f /dev/null
