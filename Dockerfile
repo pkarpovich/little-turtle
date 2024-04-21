@@ -1,5 +1,5 @@
-ARG PYTHON_VERSION=3.11
-FROM python:${PYTHON_VERSION}-slim-bookworm as base
+ARG PYTHON_VERSION=3.12
+FROM python:${PYTHON_VERSION}-slim as base
 
 ENV \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -52,5 +52,3 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 CMD python little_turtle/main.py
-# Run infinite loop to keep container running
-#CMD tail -f /dev/null
