@@ -125,7 +125,6 @@ pytz==2024.1
     # via apscheduler
 pyyaml==6.0.1
     # via
-    #   dependency-injector-fork
     #   langchain
     #   langchain-community
     #   langchain-core
