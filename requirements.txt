@@ -2,7 +2,7 @@
 #    uv pip compile pyproject.toml -o requirements.txt
 aiofiles==23.2.1
     # via aiogram
-aiogram==3.4.1
+aiogram==3.5.0
 aiohttp==3.9.5
     # via
     #   aiogram
@@ -66,16 +66,16 @@ jsonpointer==2.4
 langchain==0.1.16
 langchain-community==0.0.34
     # via langchain
-langchain-core==0.1.45
+langchain-core==0.1.46
     # via
     #   langchain
     #   langchain-community
     #   langchain-openai
     #   langchain-text-splitters
-langchain-openai==0.1.3
+langchain-openai==0.1.4
 langchain-text-splitters==0.0.1
     # via langchain
-langfuse==2.27.0
+langfuse==2.27.2
 langsmith==0.1.49
     # via
     #   langchain
@@ -97,7 +97,7 @@ numpy==1.26.4
     # via
     #   langchain
     #   langchain-community
-openai==1.23.2
+openai==1.23.6
     # via langchain-openai
 orjson==3.10.1
     # via langsmith
@@ -139,7 +139,7 @@ requests==2.31.0
     #   tiktoken
 rsa==4.9
     # via telethon
-sentry-sdk==1.45.0
+sentry-sdk==2.0.1
 six==1.16.0
     # via
     #   apscheduler
@@ -154,7 +154,7 @@ sqlalchemy==2.0.29
     #   langchain
     #   langchain-community
 structlog==24.1.0
-telethon==1.34.0
+telethon==1.35.0
 tenacity==8.2.3
     # via
     #   langchain
