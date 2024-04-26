@@ -56,7 +56,7 @@ class SystemRouter(BaseRouter):
             return
 
         await self.send_message(
-            error_messages.UNHANDLED_ERROR(event.exception), chat_id
+            error_messages.UNHANDLED_ERROR.format(err=event.exception), chat_id
         )
 
     async def start_handler(self, message: Message):

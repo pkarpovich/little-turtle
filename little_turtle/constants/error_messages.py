@@ -14,11 +14,6 @@ ERR_NO_STORY_PHOTO = "Sorry, I don't have photo for this story! 🐢🤔"
 ERR_INVALID_PHOTO = "Sorry, I can't recognize story photo! 🐢🤔"
 ERR_NO_PREVIEW_DATA = "Sorry, I don't have anything to preview! 🐢🤔"
 ERR_IMAGE_GENERATION = "Sorry, I'm having trouble generating your image! 🐢🤔"
-ERR_IMAGE_GENERATION_FULL = (
-    lambda description: f"Sorry, I'm having trouble generating your image! 🐢🤔\n\n{description}"
-)
 ERR_UNKNOWN_USER = "Sorry, I don't know you! 🐢🤔"
-UNHANDLED_ERROR = (
-    lambda err: f"Sorry, I'm having trouble handling your request! 🐢🤔\n\n{err}"
-)
+UNHANDLED_ERROR = "Sorry, I'm having trouble handling your request! 🐢🤔\n\n{err}"
 ERR_NO_REPLY_MSG = "Please, reply to the text message with the message! 🐢🤔"

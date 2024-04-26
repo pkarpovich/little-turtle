@@ -82,7 +82,7 @@ class AppConfig:
 
     @staticmethod
     def _parse_bool(val: Union[str, bool]) -> bool:
-        return val if type(val) == bool else val.lower() in ["true", "yes", "1"]
+        return val if isinstance(val, bool) else val.lower() in ["true", "yes", "1"]
 
     @staticmethod
     def _parse_list(val: Union[str, list]) -> list:

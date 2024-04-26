@@ -8,9 +8,6 @@ IMAGE_PROMPT_GENERATION_IN_PROGRESS = (
 IMAGE_GENERATION_IN_PROGRESS = (
     "Alright, diving deep into my turtle thoughts to conjure your tale... 🐢🤔✍️"
 )
-IMAGE_GENERATION_PROGRESS_UPDATE = (
-    lambda progress: f"Starting to paint our virtual canvas: {progress}% complete! 🐢🎨"
-)
 REMEMBER_INPUT_DATE = "Alright, I'll remember this date! 🐢📆"
 REMEMBER_INPUT_STORY = "Alright, I'll remember this story! 🐢📜"
 REMEMBER_INPUT_IMAGE_PROMPT = "Alright, I'll remember this image prompt! 🐢🎨"
