@@ -40,7 +40,9 @@ class HistoricalEventsChainVariables(TypedDict):
 class HistoricalEventsChain:
     def __init__(self, llm: BaseLanguageModel, config: AppConfig):
         self.config = config
-        prompt = ChatPromptTemplate.from_template(DAY_EVENT_PICKER_PROMPT, template_format="jinja2")
+        prompt = ChatPromptTemplate.from_template(
+            DAY_EVENT_PICKER_PROMPT, template_format="jinja2"
+        )
 
         self.chain = prompt | llm | StrOutputParser()
 

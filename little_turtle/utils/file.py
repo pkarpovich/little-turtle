@@ -11,7 +11,7 @@ def get_image_path(base_image_dir: str, image_path: str) -> str:
 
 
 def read_file_from_disk(file_name: str) -> bytes:
-    with open(file_name, 'rb') as f:
+    with open(file_name, "rb") as f:
         binary_data = f.read()
 
     return binary_data

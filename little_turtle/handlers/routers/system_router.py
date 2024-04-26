@@ -11,10 +11,11 @@ from little_turtle.utils import prepare_buttons
 
 class SystemRouter(BaseRouter):
     def __init__(
-            self, bot: Bot,
-            logger_service: LoggerService,
-            config_service: AppConfig,
-            error_handler_service: ErrorHandlerService
+        self,
+        bot: Bot,
+        logger_service: LoggerService,
+        config_service: AppConfig,
+        error_handler_service: ErrorHandlerService,
     ):
         super().__init__(bot)
         self.logger_service = logger_service
@@ -23,7 +24,8 @@ class SystemRouter(BaseRouter):
 
     def get_router(self) -> Router:
         self.router.message(
-            lambda message: message.from_user.id not in self.config_service.TELEGRAM_ALLOWED_USERS
+            lambda message: message.from_user.id
+            not in self.config_service.TELEGRAM_ALLOWED_USERS
         )(self.handle_disallowed_users)
         self.router.message(CommandStart())(self.start_handler)
         self.router.message(Command("ping"))(self.handle_ping)
@@ -35,13 +37,15 @@ class SystemRouter(BaseRouter):
         self.logger_service.info(
             "Disallowed user tried to use the bot",
             user_id=message.from_user.id,
-            user_message=message
+            user_message=message,
         )
 
         await self.send_message(error_messages.ERR_UNKNOWN_USER, message.chat.id)
 
     async def error_handler(self, event: ErrorEvent):
-        self.logger_service.error("Error while handling update", exc_info=event.exception)
+        self.logger_service.error(
+            "Error while handling update", exc_info=event.exception
+        )
         self.error_handler_service.capture_exception(event.exception)
 
         if event.update.callback_query is not None:
@@ -51,13 +55,15 @@ class SystemRouter(BaseRouter):
         else:
             return
 
-        await self.send_message(error_messages.UNHANDLED_ERROR(event.exception), chat_id)
+        await self.send_message(
+            error_messages.UNHANDLED_ERROR(event.exception), chat_id
+        )
 
     async def start_handler(self, message: Message):
         buttons = prepare_buttons(
             {action.value: None for action in ReplyKeyboardItems},
             builder_type=ReplyKeyboardBuilder,
-            markup_args={'resize_keyboard': True},
+            markup_args={"resize_keyboard": True},
         )
 
         await self.send_message(messages.START_REPLY, message.chat.id, buttons=buttons)

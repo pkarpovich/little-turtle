@@ -26,11 +26,11 @@ class FormState(StatesGroup):
 
 class AdminCommandsRouter(BaseStoriesRouter):
     def __init__(
-            self,
-            bot: Bot,
-            config_service: AppConfig,
-            telegram_service: TelegramService,
-            story_controller: StoriesController,
+        self,
+        bot: Bot,
+        config_service: AppConfig,
+        telegram_service: TelegramService,
+        story_controller: StoriesController,
     ):
         super().__init__(bot, story_controller, config_service)
 
@@ -45,7 +45,7 @@ class AdminCommandsRouter(BaseStoriesRouter):
 
     async def send_morning_message(self):
         for chat_id in self.config.USER_IDS_TO_SEND_MORNING_MSG:
-            await self.telegram_service.send_message(chat_id, '/story')
+            await self.telegram_service.send_message(chat_id, "/story")
 
     async def story_handler(self, _: Message, ctx: BotContext):
         next_story_date = await self.story_controller.get_next_story_date()

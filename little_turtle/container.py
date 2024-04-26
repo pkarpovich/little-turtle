@@ -12,14 +12,20 @@ from little_turtle.chains import (
 )
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers import TelegramHandlers
-from little_turtle.handlers.routers import SystemRouter, AdminCommandsRouter, SetStateRouter
-from little_turtle.handlers.routers.callback_query_handler_router import CallbackQueryHandlerRouter
+from little_turtle.handlers.routers import (
+    SystemRouter,
+    AdminCommandsRouter,
+    SetStateRouter,
+)
+from little_turtle.handlers.routers.callback_query_handler_router import (
+    CallbackQueryHandlerRouter,
+)
 from little_turtle.services import (
     AppConfig,
     LoggerService,
     TelegramService,
     ErrorHandlerService,
-    HistoricalEventsService
+    HistoricalEventsService,
 )
 
 
@@ -28,18 +34,26 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Factory(AppConfig, env=os.environ)
 
-    error_handler_service = providers.Singleton(ErrorHandlerService, config=config, logger_service=logger_service)
+    error_handler_service = providers.Singleton(
+        ErrorHandlerService, config=config, logger_service=logger_service
+    )
     telegram_service = providers.Singleton(TelegramService, config=config)
     historical_events_service = providers.Factory(HistoricalEventsService)
 
     model_name = providers.Callable(lambda config: config.OPENAI_MODEL, config=config)
-    openai_api_key = providers.Callable(lambda config: config.OPENAI_API_KEY, config=config)
+    openai_api_key = providers.Callable(
+        lambda config: config.OPENAI_API_KEY, config=config
+    )
 
-    llm = providers.Singleton(ChatOpenAI, model_name=model_name, openai_api_key=openai_api_key)
+    llm = providers.Singleton(
+        ChatOpenAI, model_name=model_name, openai_api_key=openai_api_key
+    )
 
     chain_analytics = providers.Factory(ChainAnalytics, config=config)
 
-    story_chain = providers.Factory(TurtleStoryChain, llm=llm, chain_analytics=chain_analytics, config=config)
+    story_chain = providers.Factory(
+        TurtleStoryChain, llm=llm, chain_analytics=chain_analytics, config=config
+    )
     image_prompt_chain = providers.Factory(
         ImagePromptsGeneratorChain,
         llm=llm,
@@ -69,7 +83,10 @@ class Container(containers.DeclarativeContainer):
         config=config,
         logger_service=logger_service,
     )
-    bot = providers.Callable(lambda telegram_handlers: telegram_handlers.bot, telegram_handlers=telegram_handlers)
+    bot = providers.Callable(
+        lambda telegram_handlers: telegram_handlers.bot,
+        telegram_handlers=telegram_handlers,
+    )
 
     system_router = providers.Factory(
         SystemRouter,

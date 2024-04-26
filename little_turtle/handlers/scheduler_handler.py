@@ -12,6 +12,6 @@ class SchedulerHandler:
     def start(self):
         self.scheduler.add_job(
             self.morning_callback,
-            CronTrigger(hour=8, minute=0, timezone=pytz.timezone('Europe/Warsaw'))
+            CronTrigger(hour=8, minute=0, timezone=pytz.timezone("Europe/Warsaw")),
         )
         self.scheduler.start()

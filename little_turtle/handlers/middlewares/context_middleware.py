@@ -14,12 +14,12 @@ class BotContext:
 
 
 async def context_middleware(
-        handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]],
-        event: Update,
-        data: Dict[str, Any],
+    handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]],
+    event: Update,
+    data: Dict[str, Any],
 ):
-    dispatcher = data['dispatcher']
-    bot = data['bot']
+    dispatcher = data["dispatcher"]
+    bot = data["bot"]
 
     msg_context = event.message if event.message else event.callback_query.message
 
@@ -27,7 +27,7 @@ async def context_middleware(
     user_id = msg_context.from_user.id
     state = dispatcher.fsm.get_context(bot, chat_id, chat_id)
 
-    data['ctx'] = BotContext(
+    data["ctx"] = BotContext(
         message=msg_context,
         user_id=user_id,
         chat_id=chat_id,

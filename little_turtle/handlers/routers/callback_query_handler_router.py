@@ -15,12 +15,12 @@ from little_turtle.services import AppConfig, LoggerService, TelegramService
 
 class CallbackQueryHandlerRouter(BaseStoriesRouter):
     def __init__(
-            self,
-            bot: Bot,
-            story_controller: StoriesController,
-            config_service: AppConfig,
-            logger_service: LoggerService,
-            telegram_service: TelegramService,
+        self,
+        bot: Bot,
+        story_controller: StoriesController,
+        config_service: AppConfig,
+        logger_service: LoggerService,
+        telegram_service: TelegramService,
     ):
         super().__init__(bot, story_controller, config_service)
 
@@ -29,36 +29,45 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         self.telegram_service = telegram_service
 
     def get_router(self) -> Router:
-        regenerate_filter = F.action.in_({
-            ForwardAction.REGENERATE_IMAGE_PROMPT,
-            ForwardAction.REGENERATE_STORY,
-            ForwardAction.REGENERATE_IMAGE
-        })
-        self.router.callback_query(ForwardCallback.filter(regenerate_filter))(self.regenerate_query_handler)
+        regenerate_filter = F.action.in_(
+            {
+                ForwardAction.REGENERATE_IMAGE_PROMPT,
+                ForwardAction.REGENERATE_STORY,
+                ForwardAction.REGENERATE_IMAGE,
+            }
+        )
+        self.router.callback_query(ForwardCallback.filter(regenerate_filter))(
+            self.regenerate_query_handler
+        )
 
-        set_filter = F.action.in_({
-            ForwardAction.SET_IMAGE_PROMPT,
-            ForwardAction.SET_STORY,
-            ForwardAction.SET_IMAGE,
-            ForwardAction.SET_DATE,
-        })
-        self.router.callback_query(ForwardCallback.filter(set_filter))(self.set_query_handler)
+        set_filter = F.action.in_(
+            {
+                ForwardAction.SET_IMAGE_PROMPT,
+                ForwardAction.SET_STORY,
+                ForwardAction.SET_IMAGE,
+                ForwardAction.SET_DATE,
+            }
+        )
+        self.router.callback_query(ForwardCallback.filter(set_filter))(
+            self.set_query_handler
+        )
 
         topic_filter = F.action == ForwardAction.SELECT_TARGET_TOPIC
-        self.router.callback_query(ForwardCallback.filter(topic_filter))(self.set_topic_handler)
+        self.router.callback_query(ForwardCallback.filter(topic_filter))(
+            self.set_topic_handler
+        )
 
         schedule_filter = F.action == ForwardAction.SCHEDULE
-        self.router.callback_query(ForwardCallback.filter(schedule_filter))(self.schedule_new_story)
+        self.router.callback_query(ForwardCallback.filter(schedule_filter))(
+            self.schedule_new_story
+        )
 
         self.router.message()(self.sticker_action_handler)
 
         return self.router
 
     async def regenerate_query_handler(
-            self,
-            query: CallbackQuery,
-            callback_data: ForwardCallback,
-            ctx: BotContext
+        self, query: CallbackQuery, callback_data: ForwardCallback, ctx: BotContext
     ):
         await query.answer("Generating...")
         msg = query.message
@@ -73,13 +82,12 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
             case ForwardAction.REGENERATE_IMAGE:
                 await self.async_generate_action(ctx, self.generate_image)
 
-        await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.SALUTE_FACE)
+        await self.set_message_reaction(
+            msg.chat.id, msg.message_id, Reactions.SALUTE_FACE
+        )
 
     async def set_query_handler(
-            self,
-            query: CallbackQuery,
-            callback_data: ForwardCallback,
-            ctx: BotContext
+        self, query: CallbackQuery, callback_data: ForwardCallback, ctx: BotContext
     ):
         msg = query.message
 
@@ -102,16 +110,15 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         await query.answer("Done!")
 
     async def set_topic_handler(
-            self,
-            query: CallbackQuery,
-            callback_data: ForwardCallback,
-            ctx: BotContext
+        self, query: CallbackQuery, callback_data: ForwardCallback, ctx: BotContext
     ):
-        topics = query.message.text.split('\n\n')
+        topics = query.message.text.split("\n\n")
         topic = topics[int(callback_data.payload) - 1]
 
         await self.add_target_topic(topic, ctx)
-        await self.set_message_reaction(query.message.chat.id, query.message.message_id, Reactions.LIKE)
+        await self.set_message_reaction(
+            query.message.chat.id, query.message.message_id, Reactions.LIKE
+        )
         await query.answer("Done!")
 
     async def sticker_action_handler(self, _: Message, ctx: BotContext):
@@ -131,8 +138,8 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
     async def schedule_new_story(self, query: CallbackQuery, ctx: BotContext):
         state = await ctx.state.get_data()
 
-        text = state.get('story')
-        date = await self.__prepare_schedule_date(state.get('date'))
+        text = state.get("story")
+        date = await self.__prepare_schedule_date(state.get("date"))
         photo, photo_name = await self.__get_file(query.message.photo[-1].file_id)
 
         for chat_id in self.config.CHAT_IDS_TO_SEND_STORIES:
@@ -150,7 +157,9 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
             )
             photo.seek(0)
 
-        await self.set_message_reaction(ctx.message.chat.id, ctx.message.message_id, Reactions.LIKE)
+        await self.set_message_reaction(
+            ctx.message.chat.id, ctx.message.message_id, Reactions.LIKE
+        )
         await query.answer("Done!")
         await ctx.state.clear()
 
@@ -162,12 +171,12 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         try:
             tz = timezone(timedelta(hours=self.config.DEFAULT_TZ))
 
-            date_obj = datetime.strptime(date, '%d.%m.%Y')
+            date_obj = datetime.strptime(date, "%d.%m.%Y")
             return date_obj.replace(
                 hour=self.config.DEFAULT_SCHEDULE_HOUR,
                 minute=self.config.DEFAULT_SCHEDULE_MINUTE,
                 second=self.config.DEFAULT_SCHEDULE_SECOND,
-                tzinfo=tz
+                tzinfo=tz,
             )
 
         except (ValueError, IndexError):

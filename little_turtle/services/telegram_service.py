@@ -12,7 +12,9 @@ class TelegramService:
     client: TelegramClient = None
 
     def __init__(self, config: AppConfig):
-        session_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.TELEGRAM_SESSION_NAME)
+        session_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), config.TELEGRAM_SESSION_NAME
+        )
 
         self.client = TelegramClient(
             session_path,
@@ -40,7 +42,9 @@ class TelegramService:
         if not self.client.is_connected():
             await self.client.start()
 
-    async def send_message(self, chat_id: Union[str, int], message: str, schedule: datetime = None):
+    async def send_message(
+        self, chat_id: Union[str, int], message: str, schedule: datetime = None
+    ):
         await self.ensure_connected()
         await self.client.send_message(
             chat_id,
@@ -49,12 +53,12 @@ class TelegramService:
         )
 
     async def send_photo(
-            self,
-            chat_id: Union[str, int],
-            photo: BinaryIO,
-            photo_name: str,
-            message: str,
-            schedule: datetime = None
+        self,
+        chat_id: Union[str, int],
+        photo: BinaryIO,
+        photo_name: str,
+        message: str,
+        schedule: datetime = None,
     ):
         await self.ensure_connected()
 
@@ -75,17 +79,23 @@ class TelegramService:
         chats = []
 
         async for chat in self.client.iter_dialogs(limit=limit):
-            chats.append({
-                "id": chat.id,
-                "name": chat.name,
-            })
+            chats.append(
+                {
+                    "id": chat.id,
+                    "name": chat.name,
+                }
+            )
 
         return chats
 
-    async def get_last_scheduled_message_date(self, chat_id: Union[str, int]) -> Optional[datetime]:
+    async def get_last_scheduled_message_date(
+        self, chat_id: Union[str, int]
+    ) -> Optional[datetime]:
         await self.ensure_connected()
 
-        async for msg in self.client.iter_messages(chat_id, reverse=False, scheduled=True, limit=1):
+        async for msg in self.client.iter_messages(
+            chat_id, reverse=False, scheduled=True, limit=1
+        ):
             if not msg.message:
                 continue
 

@@ -17,7 +17,9 @@ class ImagePromptsGeneratorChainVariables(TypedDict):
 class ImagePromptsGeneratorChain:
     llm_chain: Chain = None
 
-    def __init__(self, llm: BaseLanguageModel, chain_analytics: ChainAnalytics, config: AppConfig):
+    def __init__(
+        self, llm: BaseLanguageModel, chain_analytics: ChainAnalytics, config: AppConfig
+    ):
         self.config = config
         self.chain_analytics = chain_analytics
         prompt = ChatPromptTemplate.from_template(IMAGE_PROMPTS_GENERATOR_PROMPT)
@@ -25,9 +27,9 @@ class ImagePromptsGeneratorChain:
         self.chain = prompt | llm | StrOutputParser()
 
     def run(self, variables: ImagePromptsGeneratorChainVariables) -> str:
-        image_prompt = self.chain.invoke(variables, config={
-            "callbacks": [self.chain_analytics.get_callback_handler]
-        })
+        image_prompt = self.chain.invoke(
+            variables, config={"callbacks": [self.chain_analytics.get_callback_handler]}
+        )
         self.chain_analytics.flush()
 
         return image_prompt

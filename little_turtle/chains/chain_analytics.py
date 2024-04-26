@@ -9,9 +9,7 @@ class ChainAnalytics:
     def __init__(self, config: AppConfig):
         self.config = config
         self.callback_handler = CallbackHandler(
-            config.LANGFUSE_PUBLIC_KEY,
-            config.LANGFUSE_SECRET_KEY,
-            config.LANGFUSE_URL
+            config.LANGFUSE_PUBLIC_KEY, config.LANGFUSE_SECRET_KEY, config.LANGFUSE_URL
         )
 
     @property

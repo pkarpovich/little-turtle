@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class ErrorHandlerService:
-    def __init__(self, config: 'AppConfig', logger_service: 'LoggerService'):
+    def __init__(self, config: "AppConfig", logger_service: "LoggerService"):
         self.config = config
         self.logger_service = logger_service
 

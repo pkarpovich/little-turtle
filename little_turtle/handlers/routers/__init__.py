@@ -4,8 +4,8 @@ from .set_state_router import SetStateRouter
 from .system_router import SystemRouter
 
 __all__ = [
-    'AdminCommandsRouter',
-    'CallbackQueryHandlerRouter',
-    'SetStateRouter',
-    'SystemRouter',
+    "AdminCommandsRouter",
+    "CallbackQueryHandlerRouter",
+    "SetStateRouter",
+    "SystemRouter",
 ]
