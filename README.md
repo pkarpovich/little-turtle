@@ -81,6 +81,7 @@ The Little Turtle project is configured primarily through environment variables.
 - `/set_image_prompt` - Saves the replied text as the image prompt.
 - `/set_image` - Saves the replied image as the story's image.
 - `/add_target_topic` - Adds the replied text as a target topic.
+- `/set_target_topic` - Set the replied text as the target topic.
 - `/preview` - Previews an upcoming story.
 - `/schedule` - Schedules the story to be posted on the Telegram channel.
 - `/state` - Print the current status of the story.

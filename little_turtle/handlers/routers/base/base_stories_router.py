@@ -110,12 +110,15 @@ class BaseStoriesRouter(BaseRouter):
         )
 
     @staticmethod
+    async def set_target_topic(topic, ctx: BotContext):
+        await ctx.state.update_data(target_topics=[topic])
+
+    @staticmethod
     async def add_target_topic(topic, ctx: BotContext):
         data = await ctx.state.get_data()
 
         target_topics: [str] = data.get("target_topics") or list()
         target_topics.append(topic)
-
         await ctx.state.update_data(target_topics=target_topics)
 
     async def preview_story(self, ctx: BotContext):

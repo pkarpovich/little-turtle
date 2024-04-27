@@ -34,6 +34,9 @@ class SetStateRouter(BaseStoriesRouter):
         self.router.message(Command("add_target_topic"))(
             self.__add_target_topic_handler
         )
+        self.router.message(Command("set_target_topic"))(
+            self.__set_target_topic_handler
+        )
         self.router.message(Command("suggest_topics"))(self.__suggest_topics_handler)
         self.router.message(Command("get_next_date"))(self.__get_next_date)
         self.router.message(Command("set_image"))(self.__set_image_handler)
@@ -62,6 +65,16 @@ class SetStateRouter(BaseStoriesRouter):
             return
 
         await self.add_target_topic(msg.reply_to_message.text, ctx)
+        await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
+
+    async def __set_target_topic_handler(self, msg: Message, ctx: BotContext):
+        if not msg.reply_to_message or not msg.reply_to_message.text:
+            await self.send_message(
+                error_messages.ERR_NO_REPLY_STORY_TOPIC, msg.chat.id
+            )
+            return
+
+        await self.set_target_topic(msg.reply_to_message.text, ctx)
         await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
     async def __set_date_handler(self, msg: Message, ctx: BotContext):

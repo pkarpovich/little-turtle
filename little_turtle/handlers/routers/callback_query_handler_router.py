@@ -115,7 +115,7 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         topics = query.message.text.split("\n\n")
         topic = topics[int(callback_data.payload) - 1]
 
-        await self.add_target_topic(topic, ctx)
+        await self.set_target_topic(topic, ctx)
         await self.set_message_reaction(
             query.message.chat.id, query.message.message_id, Reactions.LIKE
         )

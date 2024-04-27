@@ -53,7 +53,7 @@ class AdminCommandsRouter(BaseStoriesRouter):
         await self.send_message(next_story_date, ctx.chat_id)
 
         topics = await self.suggest_target_topics(ctx)
-        await self.add_target_topic(topics[0], ctx)
+        await self.set_target_topic(topics[0], ctx)
 
         story = await self.generate_story(ctx)
         await ctx.state.update_data(story=story)
