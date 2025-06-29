@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from aiogram import Bot, Router
 from aiogram.types import URLInputFile, BufferedInputFile
 
+from little_turtle.chains.historical_events_chain import HistoricalEvents
 from little_turtle.constants import Stickers, error_messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
@@ -33,20 +34,21 @@ class BaseStoriesRouter(BaseRouter):
     def get_router(self) -> Router:
         pass
 
-    async def suggest_target_topics(self, ctx: BotContext) -> [str]:
+    async def suggest_target_topics(self, ctx: BotContext) -> HistoricalEvents:
         data = await ctx.state.get_data()
         date = data.get("date")
 
-        topics_str = self.story_controller.suggest_on_this_day_events(
+        topics = self.story_controller.suggest_on_this_day_events(
             date or ctx.message.reply_to_message.text
         )
-        topics = topics_str.split("\n\n")
+
+        topics_str = "\n\n".join(f"{event + 1}. {event_name}" for event, event_name in enumerate(topics.events))
 
         buttons = {
-            str(i + 1): ForwardCallback(
-                action=ForwardAction.SELECT_TARGET_TOPIC, payload=str(i + 1)
+            str(event + 1): ForwardCallback(
+                action=ForwardAction.SELECT_TARGET_TOPIC, payload=str(event + 1)
             )
-            for i, _ in enumerate(topics[:5])
+            for event, _ in enumerate(topics.events)
         }
 
         await self.send_message(

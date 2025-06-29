@@ -7,7 +7,8 @@ from little_turtle.chains import (
     ImageGeneratorChain,
     TurtleStoryChain,
 )
-from little_turtle.services import AppConfig, HistoricalEventsService, TelegramService
+from little_turtle.chains.historical_events_chain import HistoricalEvents
+from little_turtle.services import AppConfig, TelegramService
 from little_turtle.utils import remove_optional_last_period
 
 
@@ -25,7 +26,6 @@ class StoriesController:
         image_generator_chain: ImageGeneratorChain,
         historical_events_chain: HistoricalEventsChain,
         image_prompt_chain: ImagePromptsGeneratorChain,
-        historical_events_service: HistoricalEventsService,
         telegram_service: TelegramService,
     ):
         self.config = config
@@ -33,15 +33,10 @@ class StoriesController:
         self.historical_events_chain = historical_events_chain
         self.image_prompt_chain = image_prompt_chain
         self.image_generator_chain = image_generator_chain
-        self.historical_events_service = historical_events_service
         self.telegram_service = telegram_service
 
-    def suggest_on_this_day_events(self, date: str) -> str:
-        events = self.historical_events_service.get_by_date(date)
-
-        return self.historical_events_chain.run(
-            self.historical_events_chain.enrich_run_variables(events)
-        )
+    def suggest_on_this_day_events(self, date: str) -> HistoricalEvents:
+        return self.historical_events_chain.run(date)
 
     def imagine_story(self, image_prompt: str) -> str:
         return self.image_generator_chain.run(image_prompt)

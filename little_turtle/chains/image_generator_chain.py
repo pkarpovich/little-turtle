@@ -1,11 +1,11 @@
-from langfuse.openai import openai
+from openai import OpenAI
 
 
 class ImageGeneratorChain:
     model_name: str = "dall-e-3"
 
     def __init__(self):
-        self.client = openai.OpenAI()
+        self.client = OpenAI()
 
     def run(self, story_prompt: str) -> str:
         response = self.client.images.generate(

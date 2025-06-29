@@ -25,7 +25,6 @@ from little_turtle.services import (
     LoggerService,
     TelegramService,
     ErrorHandlerService,
-    HistoricalEventsService,
 )
 
 
@@ -38,7 +37,6 @@ class Container(containers.DeclarativeContainer):
         ErrorHandlerService, config=config, logger_service=logger_service
     )
     telegram_service = providers.Singleton(TelegramService, config=config)
-    historical_events_service = providers.Factory(HistoricalEventsService)
 
     model_name = providers.Callable(lambda config: config.OPENAI_MODEL, config=config)
     openai_api_key = providers.Callable(
@@ -60,11 +58,7 @@ class Container(containers.DeclarativeContainer):
         config=config,
         chain_analytics=chain_analytics,
     )
-    historical_events_chain = providers.Factory(
-        HistoricalEventsChain,
-        llm=llm,
-        config=config,
-    )
+    historical_events_chain = providers.Factory(HistoricalEventsChain, config=config)
     image_generator_chain = providers.Factory(ImageGeneratorChain)
 
     stories_controller = providers.Factory(
@@ -75,7 +69,6 @@ class Container(containers.DeclarativeContainer):
         image_prompt_chain=image_prompt_chain,
         image_generator_chain=image_generator_chain,
         historical_events_chain=historical_events_chain,
-        historical_events_service=historical_events_service,
     )
 
     telegram_handlers = providers.Factory(
