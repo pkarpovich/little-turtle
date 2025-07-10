@@ -8,6 +8,9 @@ class AppConfigError(Exception):
 class AppConfig:
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = "gpt-4"
+    
+    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"
 
     REDIS_URL: str = "redis://localhost:6379/0"
     BASE_IMAGE_FOLDER: str = "/app/little_turtle/images"

@@ -3,6 +3,7 @@ import os
 from dependency_injector import containers, providers
 from langchain_openai import ChatOpenAI
 
+from little_turtle.llm_provider import LLMProvider, ProviderType
 from little_turtle.chains import (
     TurtleStoryChain,
     ImagePromptsGeneratorChain,
@@ -46,6 +47,18 @@ class Container(containers.DeclarativeContainer):
     llm = providers.Singleton(
         ChatOpenAI, model_name=model_name, openai_api_key=openai_api_key
     )
+    
+    llm_provider = providers.Singleton(LLMProvider, config=config)
+    
+    openai_client = providers.Factory(
+        lambda provider: provider.build(ProviderType.OPENAI),
+        provider=llm_provider
+    )
+    
+    anthropic_client = providers.Factory(
+        lambda provider: provider.build(ProviderType.ANTHROPIC),
+        provider=llm_provider
+    )
 
     chain_analytics = providers.Factory(ChainAnalytics, config=config)
 
@@ -58,7 +71,11 @@ class Container(containers.DeclarativeContainer):
         config=config,
         chain_analytics=chain_analytics,
     )
-    historical_events_chain = providers.Factory(HistoricalEventsChain, config=config)
+    historical_events_chain = providers.Factory(
+        HistoricalEventsChain, 
+        config=config,
+        llm_client=anthropic_client
+    )
     image_generator_chain = providers.Factory(ImageGeneratorChain)
 
     stories_controller = providers.Factory(

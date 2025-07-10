@@ -1,14 +1,10 @@
 from datetime import datetime
-
-from anthropic import Anthropic
-from anthropic.types import ToolParam, ToolUseBlockParam
-from openai.types.responses import WebSearchToolParam
 from typing import TypedDict, List
 from pydantic import BaseModel, Field
-from openai import OpenAI
 from prompt_template import PromptTemplate
 
 from little_turtle.services import AppConfig
+from little_turtle.llm_provider import LLMClient
 
 template = PromptTemplate("""
 You are a Content Curator for a book, tasked with searching for and curating historical events that occurred on a specific day. Follow these instructions carefully:
@@ -65,10 +61,9 @@ class HistoricalEventsChainVariables(TypedDict):
 
 
 class HistoricalEventsChain:
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: AppConfig, llm_client: LLMClient):
         self.config = config
-        # TODO: replace with generic language model class
-        self.client = Anthropic()
+        self.llm_client = llm_client
 
     def run(self, date_string: str) -> HistoricalEvents:
         date_object = datetime.strptime(date_string, "%d.%m.%Y")
@@ -79,21 +74,17 @@ class HistoricalEventsChain:
             date=formatted_date,
         )
 
-        resp = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            system=[
-                {
-                    "type": "text",
-                    "text": instructions,
-                },
-            ],
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Find historical events that happened on {formatted_date}. "
-                               "Please provide the events in the specified language.",
-                }
-            ],
+        messages = [
+            {"role": "system", "content": instructions},
+            {
+                "role": "user",
+                "content": f"Find historical events that happened on {formatted_date}. "
+                           "Please provide the events in the specified language.",
+            }
+        ]
+        
+        resp = self.llm_client.create_completion_with_tools(
+            messages=messages,
             tools=[
                 {
                     "type": "web_search_20250305",
@@ -119,13 +110,12 @@ class HistoricalEventsChain:
                     }
                 }
             ],
-            # tool_choice={"type": "tool", "name": "record_historical_events"},
             max_tokens=1024,
         )
 
-        # Extract the structured output from the tool use
-        for content in resp.content:
-            if content.type == "tool_use" and content.name == "record_historical_events":
-                return HistoricalEvents(**content.input)
+        if hasattr(resp.raw_response, 'content'):
+            for content in resp.raw_response.content:
+                if content.type == "tool_use" and content.name == "record_historical_events":
+                    return HistoricalEvents(**content.input)
         
         raise ValueError("No structured output found in response")
