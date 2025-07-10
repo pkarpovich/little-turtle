@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from anthropic import Anthropic
+from anthropic.types import ToolParam, ToolUseBlockParam
 from openai.types.responses import WebSearchToolParam
 from typing import TypedDict, List
 from pydantic import BaseModel, Field
@@ -9,25 +11,49 @@ from prompt_template import PromptTemplate
 from little_turtle.services import AppConfig
 
 template = PromptTemplate("""
-You are a Content Curator for a book. Your task is to search historical events for specific day. Please follow these steps:
+You are a Content Curator for a book, tasked with searching for and curating historical events that occurred on a specific day. Follow these instructions carefully:
 
-Step 1:
-Remove the events from the list based on the following criteria:
-- Events that related to politics, that has impact only on a specific country
-- Events that connected to religion or religious holidays
-- Negative events for human history, such as wars, disasters and tragedies
-- Events that are not visually engaging
+1. You will be provided with a specific date in the format "day month" (e.g., "15 March", "4 July"). The date is:
+<date>
+${date}
+</date>
 
-Step 2:
-Sort events by following criteria:
-- Events that easy to visualize should be first
-- Most engaging events should be at the top of the list
-- Events that influence to the human history should be at the top of the list
+2. Use a web search tool to find historical events that happened on the provided date. (Note: In this instruction set, we assume you have access to such a tool. If you don't, please inform the user that you need web search capabilities to complete this task.)
 
-Step 3:
-Result language should be ${language}. Avoid adding any additional information to the event information
+3. From your search results, filter OUT events that are:
+   - Related to politics with impact only on a specific country
+   - Connected to religion or religious holidays
+   - Negative events (wars, disasters, tragedies, deaths)
+   - Not visually engaging or difficult to illustrate
 
-Show the top 5 events for the specific day:
+4. Select and rank events based on these criteria:
+   - Visual appeal (events that are easy to illustrate should rank higher)
+   - Universal human interest and engagement
+   - Positive impact on human history and progress
+   - Scientific discoveries, cultural milestones, exploration achievements
+
+5. Present exactly 5 events in the following language:
+<language>
+${language}
+</language>
+If the events are not already in ${language}, translate them accurately.
+
+6. For each event, include:
+   - The year it occurred
+   - A concise, engaging description (2-3 sentences maximum)
+   - Focus on the "why it matters" aspect
+
+7. After finding and filtering the events, use the record_historical_events tool to provide your final curated list of exactly 5 events.
+
+8. Each event in the events array should be a single string containing:
+   - The year it occurred
+   - A colon and space
+   - The event description and its significance
+
+Example format for each event:
+"1876: Alexander Graham Bell patents the telephone. This invention revolutionized long-distance communication, paving the way for modern telecommunications."
+
+Remember to adhere to the filtering and selection criteria, and ensure that all events are presented in ${language}.
 """)
 
 class HistoricalEvents(BaseModel):
@@ -42,21 +68,64 @@ class HistoricalEventsChain:
     def __init__(self, config: AppConfig):
         self.config = config
         # TODO: replace with generic language model class
-        self.client = OpenAI()
+        self.client = Anthropic()
 
     def run(self, date_string: str) -> HistoricalEvents:
-        instructions = template.to_string(language=self.config.GENERATION_LANGUAGE)
-
         date_object = datetime.strptime(date_string, "%d.%m.%Y")
         formatted_date = date_object.strftime("%d %B")
-
-        resp = self.client.responses.parse(
-            model="gpt-4.1",
-            tools=[WebSearchToolParam(type="web_search_preview", search_context_size="low")],
-            instructions=instructions,
-            input=f"Day: {formatted_date}",
-            text_format=HistoricalEvents,
-            temperature=0.8,
+        
+        instructions = template.to_string(
+            language=self.config.GENERATION_LANGUAGE,
+            date=formatted_date,
         )
 
-        return resp.output_parsed
+        resp = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            system=[
+                {
+                    "type": "text",
+                    "text": instructions,
+                },
+            ],
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Find historical events that happened on {formatted_date}. "
+                               "Please provide the events in the specified language.",
+                }
+            ],
+            tools=[
+                {
+                    "type": "web_search_20250305",
+                    "name": "web_search",
+                    "max_uses": 5
+                },
+                {
+                    "name": "record_historical_events",
+                    "description": "Record the curated list of historical events for the specified date",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "events": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "A historical event with year and description"
+                                },
+                                "description": "List of historical events for a specific day"
+                            }
+                        },
+                        "required": ["events"]
+                    }
+                }
+            ],
+            # tool_choice={"type": "tool", "name": "record_historical_events"},
+            max_tokens=1024,
+        )
+
+        # Extract the structured output from the tool use
+        for content in resp.content:
+            if content.type == "tool_use" and content.name == "record_historical_events":
+                return HistoricalEvents(**content.input)
+        
+        raise ValueError("No structured output found in response")

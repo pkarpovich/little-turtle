@@ -2,7 +2,10 @@ name: little-turtle
 
 services:
   story-bot:
-    image: ghcr.io/pkarpovich/little-turtle:latest
+    #    image: ghcr.io/pkarpovich/little-turtle:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: story-bot
     restart: unless-stopped
     environment:

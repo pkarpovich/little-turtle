@@ -1,5 +1,7 @@
+from openai.types import Reasoning
 from typing import TypedDict, List
 
+from openai import OpenAI
 from langchain.base_language import BaseLanguageModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -22,17 +24,19 @@ class TurtleStoryChain:
         self, llm: BaseLanguageModel, chain_analytics: ChainAnalytics, config: AppConfig
     ):
         self.config = config
-        self.chain_analytics = chain_analytics
-        prompt = ChatPromptTemplate.from_template(
-            TURTLE_STORY_PROMPT_TEMPLATE, template_format="jinja2"
+        self.client = OpenAI()
+
+    def run(self, target_topics: str) -> str:
+        instructions = TURTLE_STORY_PROMPT_TEMPLATE.to_string(language=self.config.GENERATION_LANGUAGE, current_date=target_topics['date'])
+        resp = self.client.responses.create(
+            model='o4-mini',
+            reasoning=Reasoning(effort="medium"),
+            instructions=instructions,
+            input=target_topics['target_topics'][0],
         )
 
-        self.chain = prompt | llm | StrOutputParser()
 
-    def run(self, variables: TurtleStoryChainVariables) -> str:
-        return self.chain.invoke(
-            variables, config={"callbacks": [self.chain_analytics.get_callback_handler]}
-        )
+        return resp.output_text
 
     def enrich_run_variables(
         self,

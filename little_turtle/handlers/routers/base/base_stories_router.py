@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import base64
 from os import path
 from typing import Optional, Callable
 from urllib.parse import urlparse
@@ -93,13 +94,16 @@ class BaseStoriesRouter(BaseRouter):
 
         return image_prompt
 
-    async def generate_image(self, ctx: BotContext):
-        image_prompt = (await ctx.state.get_data()).get("image_prompt")
-        image_url = self.story_controller.imagine_story(image_prompt)
+    def _base64_to_input_file(self, base64_data: str, filename: str = "generated_image.png") -> BufferedInputFile:
+        """Convert base64 encoded image to BufferedInputFile for Telegram."""
+        image_bytes = base64.b64decode(base64_data)
+        return BufferedInputFile(file=image_bytes, filename=filename)
 
-        image = URLInputFile(
-            image_url, filename=path.basename(urlparse(image_url).path)
-        )
+    async def generate_image(self, ctx: BotContext):
+        story = (await ctx.state.get_data()).get("story")
+        image_base64 = self.story_controller.imagine_story(story)
+        image = self._base64_to_input_file(image_base64)
+        
         return await self.bot.send_photo(
             ctx.chat_id,
             image,

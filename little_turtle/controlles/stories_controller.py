@@ -38,8 +38,8 @@ class StoriesController:
     def suggest_on_this_day_events(self, date: str) -> HistoricalEvents:
         return self.historical_events_chain.run(date)
 
-    def imagine_story(self, image_prompt: str) -> str:
-        return self.image_generator_chain.run(image_prompt)
+    def imagine_story(self, story: str) -> str:
+        return self.image_generator_chain.run(story)
 
     def suggest_story_prompt(self, story_content: str) -> str:
         image_prompt_variables = self.image_prompt_chain.enrich_run_variables(
