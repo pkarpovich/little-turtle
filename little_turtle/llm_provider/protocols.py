@@ -1,4 +1,11 @@
-from typing import Protocol, Any
+from typing import Protocol, Any, Optional
+from typing_extensions import TypedDict
+
+
+class Tool(TypedDict):
+    type: str
+    name: str
+    max_uses: int
 
 
 class LLMResponse(Protocol):
@@ -21,4 +28,7 @@ class LLMClient(Protocol):
         tools: list[dict[str, Any]],
         **kwargs
     ) -> LLMResponse:
+        ...
+    
+    def get_search_tool(self) -> Optional[Tool]:
         ...

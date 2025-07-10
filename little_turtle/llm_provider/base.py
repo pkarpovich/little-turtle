@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 
 from little_turtle.services import AppConfig
-from .protocols import LLMResponse
+from .protocols import LLMResponse, Tool
 
 
 class BaseLLMAdapter(ABC):
@@ -26,3 +26,6 @@ class BaseLLMAdapter(ABC):
         **kwargs
     ) -> LLMResponse:
         pass
+    
+    def get_search_tool(self) -> Optional[Tool]:
+        return None

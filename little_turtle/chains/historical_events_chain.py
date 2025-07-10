@@ -6,6 +6,8 @@ from prompt_template import PromptTemplate
 from little_turtle.services import AppConfig
 from little_turtle.llm_provider import LLMClient
 
+RECORD_HISTORICAL_EVENTS_TOOL = "record_historical_events"
+
 template = PromptTemplate("""
 You are a Content Curator for a book, tasked with searching for and curating historical events that occurred on a specific day. Follow these instructions carefully:
 
@@ -52,6 +54,7 @@ Example format for each event:
 Remember to adhere to the filtering and selection criteria, and ensure that all events are presented in ${language}.
 """)
 
+
 class HistoricalEvents(BaseModel):
     events: list[str] = Field(description="List of historical events for a specific day")
 
@@ -60,10 +63,41 @@ class HistoricalEventsChainVariables(TypedDict):
     language: str
 
 
+def get_structured_output_tool() -> dict[str, any]:
+    return {
+        "name": RECORD_HISTORICAL_EVENTS_TOOL,
+        "description": "Record the curated list of historical events for the specified date",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "description": "A historical event with year and description"
+                    },
+                    "description": "List of historical events for a specific day"
+                }
+            },
+            "required": ["events"]
+        }
+    }
+
+
+def extract_structured_output(response) -> HistoricalEvents:
+    if hasattr(response.raw_response, 'content'):
+        for content in response.raw_response.content:
+            if content.type == "tool_use" and content.name == RECORD_HISTORICAL_EVENTS_TOOL:
+                return HistoricalEvents(**content.input)
+    
+    raise ValueError("No structured output found in response")
+
+
 class HistoricalEventsChain:
     def __init__(self, config: AppConfig, llm_client: LLMClient):
         self.config = config
         self.llm_client = llm_client
+    
 
     def run(self, date_string: str) -> HistoricalEvents:
         date_object = datetime.strptime(date_string, "%d.%m.%Y")
@@ -83,39 +117,11 @@ class HistoricalEventsChain:
             }
         ]
         
+        search_tool = self.llm_client.get_search_tool()
         resp = self.llm_client.create_completion_with_tools(
+            tools=[search_tool, get_structured_output_tool()],
             messages=messages,
-            tools=[
-                {
-                    "type": "web_search_20250305",
-                    "name": "web_search",
-                    "max_uses": 5
-                },
-                {
-                    "name": "record_historical_events",
-                    "description": "Record the curated list of historical events for the specified date",
-                    "input_schema": {
-                        "type": "object",
-                        "properties": {
-                            "events": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                    "description": "A historical event with year and description"
-                                },
-                                "description": "List of historical events for a specific day"
-                            }
-                        },
-                        "required": ["events"]
-                    }
-                }
-            ],
             max_tokens=1024,
         )
 
-        if hasattr(resp.raw_response, 'content'):
-            for content in resp.raw_response.content:
-                if content.type == "tool_use" and content.name == "record_historical_events":
-                    return HistoricalEvents(**content.input)
-        
-        raise ValueError("No structured output found in response")
+        return extract_structured_output(resp)

@@ -1,9 +1,9 @@
-from typing import Any
+from typing import Any, Optional
 from anthropic import Anthropic
 
 from little_turtle.services import AppConfig
 from .base import BaseLLMAdapter
-from .protocols import LLMResponse
+from .protocols import LLMResponse, Tool
 
 
 class AnthropicResponse:
@@ -65,3 +65,10 @@ class AnthropicAdapter(BaseLLMAdapter):
             else:
                 converted.append(msg)
         return converted
+    
+    def get_search_tool(self) -> Optional[Tool]:
+        return {
+            "type": "web_search_20250305",
+            "name": "web_search",
+            "max_uses": 5
+        }
