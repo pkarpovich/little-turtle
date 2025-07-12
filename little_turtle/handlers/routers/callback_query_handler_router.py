@@ -31,7 +31,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
     def get_router(self) -> Router:
         regenerate_filter = F.action.in_(
             {
-                ForwardAction.REGENERATE_IMAGE_PROMPT,
                 ForwardAction.REGENERATE_STORY,
                 ForwardAction.REGENERATE_IMAGE,
             }
@@ -42,7 +41,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
 
         set_filter = F.action.in_(
             {
-                ForwardAction.SET_IMAGE_PROMPT,
                 ForwardAction.SET_STORY,
                 ForwardAction.SET_IMAGE,
                 ForwardAction.SET_DATE,
@@ -76,8 +74,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
             case ForwardAction.REGENERATE_STORY:
                 await self.async_generate_action(ctx, self.generate_story)
 
-            case ForwardAction.REGENERATE_IMAGE_PROMPT:
-                await self.async_generate_action(ctx, self.generate_image_prompt)
 
             case ForwardAction.REGENERATE_IMAGE:
                 await self.async_generate_action(ctx, self.generate_image)
@@ -98,8 +94,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
             case ForwardAction.SET_STORY:
                 await ctx.state.update_data(story=msg.text)
 
-            case ForwardAction.SET_IMAGE_PROMPT:
-                await ctx.state.update_data(image_prompt=msg.text)
 
             case ForwardAction.SET_IMAGE:
                 image_path = await self.save_file_to_disk(msg.photo[-1].file_id)
@@ -126,8 +120,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
             case ReplyKeyboardItems.STORY.value:
                 await self.async_generate_action(ctx, self.generate_story)
 
-            case ReplyKeyboardItems.IMAGE_PROMPT.value:
-                await self.async_generate_action(ctx, self.generate_image_prompt)
 
             case ReplyKeyboardItems.IMAGE.value:
                 await self.async_generate_action(ctx, self.generate_image)

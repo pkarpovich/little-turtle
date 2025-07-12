@@ -6,7 +6,6 @@ from langchain_openai import ChatOpenAI
 from little_turtle.llm_provider import LLMProvider, ProviderType
 from little_turtle.chains import (
     TurtleStoryChain,
-    ImagePromptsGeneratorChain,
     ChainAnalytics,
     HistoricalEventsChain,
     ImageGeneratorChain,
@@ -65,12 +64,6 @@ class Container(containers.DeclarativeContainer):
     story_chain = providers.Factory(
         TurtleStoryChain, llm=llm, chain_analytics=chain_analytics, config=config
     )
-    image_prompt_chain = providers.Factory(
-        ImagePromptsGeneratorChain,
-        llm=llm,
-        config=config,
-        chain_analytics=chain_analytics,
-    )
     historical_events_chain = providers.Factory(
         HistoricalEventsChain, 
         config=config,
@@ -83,7 +76,6 @@ class Container(containers.DeclarativeContainer):
         config=config,
         story_chain=story_chain,
         telegram_service=telegram_service,
-        image_prompt_chain=image_prompt_chain,
         image_generator_chain=image_generator_chain,
         historical_events_chain=historical_events_chain,
     )

@@ -28,9 +28,6 @@ class SetStateRouter(BaseStoriesRouter):
         self.router.message(Command("reset_target_topics"))(
             self.__reset_target_topics_handler
         )
-        self.router.message(Command("set_image_prompt"))(
-            self.__set_image_prompt_handler
-        )
         self.router.message(Command("add_target_topic"))(
             self.__add_target_topic_handler
         )
@@ -92,15 +89,6 @@ class SetStateRouter(BaseStoriesRouter):
         await ctx.state.update_data(story=msg.reply_to_message.text)
         await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
-    async def __set_image_prompt_handler(self, msg: Message, ctx: BotContext):
-        if not msg.reply_to_message or not msg.reply_to_message.text:
-            await self.send_message(
-                error_messages.ERR_NO_REPLY_IMAGE_PROMPT, msg.chat.id
-            )
-            return
-
-        await ctx.state.update_data(image_prompt=msg.reply_to_message.text)
-        await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
     async def __set_image_handler(self, msg: Message, ctx: BotContext):
         if (

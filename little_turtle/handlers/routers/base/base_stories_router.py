@@ -77,22 +77,6 @@ class BaseStoriesRouter(BaseRouter):
 
         return story
 
-    async def generate_image_prompt(self, ctx: BotContext) -> Optional[str]:
-        text = (await ctx.state.get_data()).get("story")
-
-        image_prompt = self.story_controller.suggest_story_prompt(text)
-        await self.send_message(
-            image_prompt,
-            chat_id=ctx.chat_id,
-            buttons=prepare_buttons(
-                {
-                    "👎": ForwardCallback(action=ForwardAction.REGENERATE_IMAGE_PROMPT),
-                    "👍": ForwardCallback(action=ForwardAction.SET_IMAGE_PROMPT),
-                }
-            ),
-        )
-
-        return image_prompt
 
     def _base64_to_input_file(self, base64_data: str, filename: str = "generated_image.png") -> BufferedInputFile:
         """Convert base64 encoded image to BufferedInputFile for Telegram."""

@@ -18,7 +18,6 @@ class ImageCallback(CallbackData, prefix="turtle_image"):
 class FormState(StatesGroup):
     date = State()
     story = State()
-    image_prompt = State()
     image = State()
     target_topics = State()
     comment = State()
@@ -57,9 +56,6 @@ class AdminCommandsRouter(BaseStoriesRouter):
 
         story = await self.generate_story(ctx)
         await ctx.state.update_data(story=story)
-
-        image_prompt = await self.generate_image_prompt(ctx)
-        await ctx.state.update_data(image_prompt=image_prompt)
 
         await self.generate_image(ctx)
 
