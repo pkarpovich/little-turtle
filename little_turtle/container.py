@@ -1,12 +1,10 @@
 import os
 
 from dependency_injector import containers, providers
-from langchain_openai import ChatOpenAI
 
 from little_turtle.llm_provider import LLMProvider, ProviderType
 from little_turtle.chains import (
     TurtleStoryChain,
-    ChainAnalytics,
     HistoricalEventsChain,
     ImageGeneratorChain,
 )
@@ -38,14 +36,6 @@ class Container(containers.DeclarativeContainer):
     )
     telegram_service = providers.Singleton(TelegramService, config=config)
 
-    model_name = providers.Callable(lambda config: config.OPENAI_MODEL, config=config)
-    openai_api_key = providers.Callable(
-        lambda config: config.OPENAI_API_KEY, config=config
-    )
-
-    llm = providers.Singleton(
-        ChatOpenAI, model_name=model_name, openai_api_key=openai_api_key
-    )
     
     llm_provider = providers.Singleton(LLMProvider, config=config)
     
@@ -59,10 +49,9 @@ class Container(containers.DeclarativeContainer):
         provider=llm_provider
     )
 
-    chain_analytics = providers.Factory(ChainAnalytics, config=config)
 
     story_chain = providers.Factory(
-        TurtleStoryChain, llm=llm, chain_analytics=chain_analytics, config=config
+        TurtleStoryChain, config=config, llm_client=openai_client
     )
     historical_events_chain = providers.Factory(
         HistoricalEventsChain, 
