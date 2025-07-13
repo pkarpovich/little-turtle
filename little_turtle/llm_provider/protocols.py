@@ -30,5 +30,13 @@ class LLMClient(Protocol):
     ) -> LLMResponse:
         ...
     
+    def generate_image(
+        self,
+        instructions: str,
+        input_text: str,
+        **kwargs
+    ) -> str:
+        ...
+    
     def get_search_tool(self) -> Optional[Tool]:
         ...

@@ -51,3 +51,24 @@ class OpenAIAdapter(BaseLLMAdapter):
         )
         
         return OpenAIResponse(response)
+    
+    def generate_image(
+        self,
+        instructions: str,
+        input_text: str,
+        **kwargs
+    ) -> str:
+        resp = self.client.responses.create(
+            model=kwargs.get("model", "gpt-4.1"),
+            instructions=instructions,
+            input=input_text,
+            tools=[{"type": "image_generation"}],
+        )
+
+        image_data = [
+            output.result
+            for output in resp.output
+            if output.type == "image_generation_call"
+        ]
+
+        return image_data[0] if image_data else ""

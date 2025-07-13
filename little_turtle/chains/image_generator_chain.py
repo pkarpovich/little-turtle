@@ -1,5 +1,7 @@
-from openai import OpenAI
 from prompt_template import PromptTemplate
+
+from little_turtle.services import AppConfig
+from little_turtle.llm_provider import LLMClient
 
 
 template = PromptTemplate("""Draw a square, Pixar-style digital illustration inspired by this historical story.
@@ -12,28 +14,14 @@ Capture the accurate setting, era, clothing, technology, and unique mood of the 
 
 Use vibrant colors, soft Pixar lighting, and expressive, cinematic details.
 
-The scene should be lively and dynamic, with the turtle’s pose, gaze, and body language fitting the context and spirit of the story.
+The scene should be lively and dynamic, with the turtle's pose, gaze, and body language fitting the context and spirit of the story.
 Do not add story date inside image. Aspect ratio: 1:1 (square).""")
 
 
 class ImageGeneratorChain:
-    def __init__(self):
-        self.client = OpenAI()
+    def __init__(self, llm_client: LLMClient):
+        self.llm_client = llm_client
 
     def run(self, story: str) -> str:
-        prompt = template.to_string()
-
-        resp = self.client.responses.create(
-            model='gpt-4.1',
-            instructions=prompt,
-            input=story,
-            tools=[{"type": "image_generation"}],
-        )
-
-        image_data = [
-            output.result
-            for output in resp.output
-            if output.type == "image_generation_call"
-        ]
-
-        return image_data[0]
+        instructions = template.to_string()
+        return self.llm_client.generate_image(instructions, story)

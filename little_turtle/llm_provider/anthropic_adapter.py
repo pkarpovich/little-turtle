@@ -66,6 +66,14 @@ class AnthropicAdapter(BaseLLMAdapter):
                 converted.append(msg)
         return converted
     
+    def generate_image(
+        self,
+        instructions: str,
+        input_text: str,
+        **kwargs
+    ) -> str:
+        raise NotImplementedError("Anthropic adapter does not support image generation")
+    
     def get_search_tool(self) -> Optional[Tool]:
         return {
             "type": "web_search_20250305",

@@ -58,7 +58,9 @@ class Container(containers.DeclarativeContainer):
         config=config,
         llm_client=anthropic_client
     )
-    image_generator_chain = providers.Factory(ImageGeneratorChain)
+    image_generator_chain = providers.Factory(
+        ImageGeneratorChain, llm_client=openai_client
+    )
 
     stories_controller = providers.Factory(
         StoriesController,
