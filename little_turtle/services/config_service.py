@@ -31,6 +31,10 @@ class AppConfig:
     DEFAULT_SCHEDULE_MINUTE: int = 4
     DEFAULT_SCHEDULE_SECOND: int = 33
 
+    PHOENIX_COLLECTOR_ENDPOINT: str = ""
+    PHOENIX_PROJECT_NAME: str = "little-turtle"
+    PHOENIX_ENABLED: bool = True
+
     LANGFUSE_PUBLIC_KEY: str
     LANGFUSE_SECRET_KEY: str
     LANGFUSE_URL: str

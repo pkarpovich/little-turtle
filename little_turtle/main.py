@@ -2,6 +2,7 @@ import asyncio
 
 from dependency_injector.wiring import inject, Provide
 from dotenv import load_dotenv
+from phoenix.otel import register
 
 from little_turtle.container import Container
 from little_turtle.handlers import TelegramHandlers
@@ -11,7 +12,24 @@ from little_turtle.handlers.routers import (
     SetStateRouter,
     AdminCommandsRouter,
 )
-from little_turtle.services import ErrorHandlerService
+from little_turtle.services import ErrorHandlerService, AppConfig
+
+
+def initialize_telemetry(config: AppConfig):
+    if not config.PHOENIX_ENABLED:
+        return None
+        
+    if not config.PHOENIX_COLLECTOR_ENDPOINT:
+        print("⚠️ Phoenix telemetry enabled but no collector endpoint configured")
+        return None
+    
+    return register(
+        project_name=config.PHOENIX_PROJECT_NAME,
+        endpoint=config.PHOENIX_COLLECTOR_ENDPOINT,
+        auto_instrument=True,
+        protocol="http/protobuf",
+        batch=True,
+    )
 
 
 @inject
@@ -45,6 +63,9 @@ if __name__ == "__main__":
     container = Container()
     container.init_resources()
     container.wire(modules=[__name__])
+    
+    config = container.config()
+    tracer_provider = initialize_telemetry(config)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

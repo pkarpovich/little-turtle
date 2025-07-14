@@ -23,6 +23,9 @@ dependencies = [
     "pydantic>=2.11.7",
     "prompt-template>=1.2.0",
     "anthropic>=0.57.1",
+    "arize-phoenix-otel>=0.12.1",
+    "openinference-instrumentation-openai>=0.1.30",
+    "openinference-instrumentation-anthropic>=0.1.18",
 ]
 
 [project.optional-dependencies]
