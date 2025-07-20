@@ -156,6 +156,23 @@ wheels = [
 ]
 
 [[package]]
+name = "arize-phoenix-client"
+version = "1.13.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "openinference-semantic-conventions" },
+    { name = "opentelemetry-exporter-otlp" },
+    { name = "opentelemetry-sdk" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c5/48/3f64c4eaa5a579257928441dd4677974e14c10f69afc290de301447ae041/arize_phoenix_client-1.13.2.tar.gz", hash = "sha256:b4a88c5eda408cbee3a06f77021667873e28a5635e93995bfa70260b0f4a55f9", size = 95371 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cc/74/a2a3830b531579896b4f3179475f8ce2dab02b109035ae671429682fd1a3/arize_phoenix_client-1.13.2-py3-none-any.whl", hash = "sha256:398e4aa02789ff735f607c079d5c9da5919d0aee83012d4cb38b4e480d95e0e8", size = 99394 },
+]
+
+[[package]]
 name = "arize-phoenix-otel"
 version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -687,6 +704,7 @@ dependencies = [
     { name = "aiogram" },
     { name = "anthropic" },
     { name = "apscheduler" },
+    { name = "arize-phoenix-client" },
     { name = "arize-phoenix-otel" },
     { name = "dependency-injector-fork" },
     { name = "jinja2" },
@@ -716,6 +734,7 @@ requires-dist = [
     { name = "aiogram", specifier = ">=3.5.0" },
     { name = "anthropic", specifier = ">=0.57.1" },
     { name = "apscheduler", specifier = ">=3.10.4" },
+    { name = "arize-phoenix-client", specifier = ">=1.13.2" },
     { name = "arize-phoenix-otel", specifier = ">=0.12.1" },
     { name = "dependency-injector-fork", specifier = ">=4.42.1" },
     { name = "jinja2", specifier = ">=3.1.3" },

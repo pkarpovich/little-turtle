@@ -25,7 +25,7 @@ def initialize_telemetry(config: AppConfig):
     
     return register(
         project_name=config.PHOENIX_PROJECT_NAME,
-        endpoint=config.PHOENIX_COLLECTOR_ENDPOINT,
+        endpoint=config.PHOENIX_COLLECTOR_ENDPOINT + "/v1/traces",
         auto_instrument=True,
         protocol="http/protobuf",
         batch=True,

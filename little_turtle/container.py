@@ -18,6 +18,7 @@ from little_turtle.handlers.routers import (
 from little_turtle.handlers.routers.callback_query_handler_router import (
     CallbackQueryHandlerRouter,
 )
+from little_turtle.prompts.prompts_provider import PromptsProvider
 from little_turtle.services import (
     AppConfig,
     LoggerService,
@@ -48,10 +49,12 @@ class Container(containers.DeclarativeContainer):
         lambda provider: provider.build(ProviderType.ANTHROPIC),
         provider=llm_provider
     )
+    
+    prompts_provider = providers.Singleton(PromptsProvider)
 
 
     story_chain = providers.Factory(
-        TurtleStoryChain, config=config, llm_client=openai_client
+        TurtleStoryChain, lm_client=openai_client, prompts_provider=prompts_provider
     )
     historical_events_chain = providers.Factory(
         HistoricalEventsChain, 

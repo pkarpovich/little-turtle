@@ -7,8 +7,9 @@ from little_turtle.chains import (
     TurtleStoryChain,
 )
 from little_turtle.chains.historical_events_chain import HistoricalEvents
+from little_turtle.chains.turtle_story_chain import TurtleStoryChainVariables
 from little_turtle.services import AppConfig, TelegramService
-from little_turtle.utils import remove_optional_last_period
+from little_turtle.utils import remove_optional_last_period, get_day_of_week
 
 
 class StoryResponse(TypedDict):
@@ -45,9 +46,10 @@ class StoriesController:
         target_topics: List[str],
     ) -> str:
         return self.story_chain.run(
-            self.story_chain.enrich_run_variables(
-                date,
-                target_topics,
+            TurtleStoryChainVariables(
+                current_date=f"{date} ({get_day_of_week(date)})",
+                language=self.config.GENERATION_LANGUAGE,
+                historical_event=target_topics[0],
             )
         )
 
