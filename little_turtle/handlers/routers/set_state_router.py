@@ -131,9 +131,9 @@ class SetStateRouter(BaseStoriesRouter):
             await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, chat_id)
             return False
 
-        date = parse_date(message.reply_to_message.text)
-        if date < datetime.now():
-            await self.send_message(error_messages.ERR_DATE_IN_THE_PAST, chat_id)
-            return False
+        # date = parse_date(message.reply_to_message.text)
+        # if date < datetime.now():
+        #     await self.send_message(error_messages.ERR_DATE_IN_THE_PAST, chat_id)
+        #     return False
 
         return True

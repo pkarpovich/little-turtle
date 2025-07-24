@@ -54,15 +54,15 @@ class Container(containers.DeclarativeContainer):
 
 
     story_chain = providers.Factory(
-        TurtleStoryChain, lm_client=openai_client, prompts_provider=prompts_provider
+        TurtleStoryChain, llm_client=openai_client, prompts_provider=prompts_provider
     )
     historical_events_chain = providers.Factory(
         HistoricalEventsChain, 
-        config=config,
-        llm_client=anthropic_client
+        llm_client=anthropic_client,
+        prompts_provider=prompts_provider
     )
     image_generator_chain = providers.Factory(
-        ImageGeneratorChain, llm_client=openai_client
+        ImageGeneratorChain, llm_client=openai_client, prompts_provider=prompts_provider
     )
 
     stories_controller = providers.Factory(

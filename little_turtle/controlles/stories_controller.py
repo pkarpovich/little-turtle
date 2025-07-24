@@ -6,8 +6,9 @@ from little_turtle.chains import (
     ImageGeneratorChain,
     TurtleStoryChain,
 )
-from little_turtle.chains.historical_events_chain import HistoricalEvents
+from little_turtle.chains.historical_events_chain import HistoricalEvents, HistoricalEventsChainVariables
 from little_turtle.chains.turtle_story_chain import TurtleStoryChainVariables
+from little_turtle.chains.image_generator_chain import ImageGeneratorChainVariables
 from little_turtle.services import AppConfig, TelegramService
 from little_turtle.utils import remove_optional_last_period, get_day_of_week
 
@@ -34,10 +35,22 @@ class StoriesController:
         self.telegram_service = telegram_service
 
     def suggest_on_this_day_events(self, date: str) -> HistoricalEvents:
-        return self.historical_events_chain.run(date)
+        date_object = datetime.strptime(date, "%d.%m.%Y")
+        formatted_date = date_object.strftime("%d %B")
+
+        return self.historical_events_chain.run(
+            HistoricalEventsChainVariables(
+                language=self.config.GENERATION_LANGUAGE,
+                date=formatted_date,
+            )
+        )
 
     def imagine_story(self, story: str) -> str:
-        return self.image_generator_chain.run(story)
+        return self.image_generator_chain.run(
+            ImageGeneratorChainVariables(
+                story=story,
+            )
+        )
 
 
     def suggest_story(
