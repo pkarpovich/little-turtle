@@ -3,10 +3,10 @@ import os
 from dependency_injector import containers, providers
 
 from little_turtle.llm_provider import LLMProvider, ProviderType
-from little_turtle.chains import (
-    TurtleStoryChain,
-    HistoricalEventsChain,
-    ImageGeneratorChain,
+from little_turtle.agents import (
+    StoryAgent,
+    HistoricalEventsAgent,
+    ImageAgent,
 )
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers import TelegramHandlers
@@ -53,25 +53,25 @@ class Container(containers.DeclarativeContainer):
     prompts_provider = providers.Singleton(PromptsProvider)
 
 
-    story_chain = providers.Factory(
-        TurtleStoryChain, llm_client=openai_client, prompts_provider=prompts_provider
+    story_agent = providers.Factory(
+        StoryAgent, llm_client=openai_client, prompts_provider=prompts_provider
     )
-    historical_events_chain = providers.Factory(
-        HistoricalEventsChain, 
+    historical_events_agent = providers.Factory(
+        HistoricalEventsAgent, 
         llm_client=anthropic_client,
         prompts_provider=prompts_provider
     )
-    image_generator_chain = providers.Factory(
-        ImageGeneratorChain, llm_client=openai_client, prompts_provider=prompts_provider
+    image_agent = providers.Factory(
+        ImageAgent, llm_client=openai_client, prompts_provider=prompts_provider
     )
 
     stories_controller = providers.Factory(
         StoriesController,
         config=config,
-        story_chain=story_chain,
+        story_agent=story_agent,
         telegram_service=telegram_service,
-        image_generator_chain=image_generator_chain,
-        historical_events_chain=historical_events_chain,
+        image_agent=image_agent,
+        historical_events_agent=historical_events_agent,
     )
 
     telegram_handlers = providers.Factory(

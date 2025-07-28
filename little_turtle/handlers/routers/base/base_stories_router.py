@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from aiogram import Bot, Router
 from aiogram.types import URLInputFile, BufferedInputFile
 
-from little_turtle.chains.historical_events_chain import HistoricalEvents
+from little_turtle.agents.historical_events_agent import HistoricalEvents
 from little_turtle.constants import Stickers, error_messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
