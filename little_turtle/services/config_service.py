@@ -8,7 +8,7 @@ class AppConfigError(Exception):
 class AppConfig:
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = "gpt-4"
-    
+
     ANTHROPIC_API_KEY: str = ""
     ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"
 
@@ -34,15 +34,6 @@ class AppConfig:
     PHOENIX_COLLECTOR_ENDPOINT: str = ""
     PHOENIX_PROJECT_NAME: str = "little-turtle"
     PHOENIX_ENABLED: bool = True
-
-    LANGFUSE_PUBLIC_KEY: str
-    LANGFUSE_SECRET_KEY: str
-    LANGFUSE_URL: str
-
-    ERROR_HANDLER_ENABLED: bool = False
-    ERROR_HANDLER_DNS: str = ""
-    ERROR_HANDLER_ENVIRONMENT: str = "development"
-    ERROR_HANDLER_SERVER_NAME: str = "little_turtle_local"
 
     APPLICATION_TZ: str = "Europe/Warsaw"
     DEBUG: bool = False

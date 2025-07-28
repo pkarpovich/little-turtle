@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from little_turtle.constants import error_messages, messages, ReplyKeyboardItems
 from little_turtle.handlers.routers.base.base_router import BaseRouter
-from little_turtle.services import LoggerService, AppConfig, ErrorHandlerService
+from little_turtle.services import LoggerService, AppConfig
 from little_turtle.utils import prepare_buttons
 
 
@@ -15,12 +15,10 @@ class SystemRouter(BaseRouter):
         bot: Bot,
         logger_service: LoggerService,
         config_service: AppConfig,
-        error_handler_service: ErrorHandlerService,
     ):
         super().__init__(bot)
         self.logger_service = logger_service
         self.config_service = config_service
-        self.error_handler_service = error_handler_service
 
     def get_router(self) -> Router:
         self.router.message(
@@ -46,7 +44,6 @@ class SystemRouter(BaseRouter):
         self.logger_service.error(
             "Error while handling update", exc_info=event.exception
         )
-        self.error_handler_service.capture_exception(event.exception)
 
         if event.update.callback_query is not None:
             chat_id = event.update.callback_query.message.chat.id

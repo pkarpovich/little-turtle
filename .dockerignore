@@ -4,6 +4,10 @@
 # For more help, visit the .dockerignore file reference guide at
 # https://docs.docker.com/engine/reference/builder/#dockerignore-file
 
+**/.claude
+**/.ropeproject
+**/assets
+**/images
 **/.DS_Store
 **/__pycache__
 **/.venv
@@ -36,3 +40,8 @@
 **/.idea
 LICENSE
 README.md
+.mise.toml
+inventory.yml
+Makefile
+ruff.toml
+spot.yml

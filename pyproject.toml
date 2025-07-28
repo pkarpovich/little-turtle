@@ -12,7 +12,6 @@ dependencies = [
     "dependency-injector>=4.48.1",
     "aiogram>=3.5.0",
     "structlog>=24.1.0",
-    "sentry-sdk>=2.0.1",
     "apscheduler>=3.10.4",
     "redis>=5.0.3",
     "pytz>=2025.2",

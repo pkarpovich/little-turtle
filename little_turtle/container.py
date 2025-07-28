@@ -23,7 +23,6 @@ from little_turtle.services import (
     AppConfig,
     LoggerService,
     TelegramService,
-    ErrorHandlerService,
 )
 
 
@@ -31,35 +30,27 @@ class Container(containers.DeclarativeContainer):
     logger_service = providers.Factory(LoggerService)
 
     config = providers.Factory(AppConfig, env=os.environ)
-
-    error_handler_service = providers.Singleton(
-        ErrorHandlerService, config=config, logger_service=logger_service
-    )
     telegram_service = providers.Singleton(TelegramService, config=config)
 
-    
     llm_provider = providers.Singleton(LLMProvider, config=config)
-    
-    openai_client = providers.Factory(
-        lambda provider: provider.build(ProviderType.OPENAI),
-        provider=llm_provider
-    )
-    
-    anthropic_client = providers.Factory(
-        lambda provider: provider.build(ProviderType.ANTHROPIC),
-        provider=llm_provider
-    )
-    
-    prompts_provider = providers.Singleton(PromptsProvider)
 
+    openai_client = providers.Factory(
+        lambda provider: provider.build(ProviderType.OPENAI), provider=llm_provider
+    )
+
+    anthropic_client = providers.Factory(
+        lambda provider: provider.build(ProviderType.ANTHROPIC), provider=llm_provider
+    )
+
+    prompts_provider = providers.Singleton(PromptsProvider)
 
     story_agent = providers.Factory(
         StoryAgent, llm_client=openai_client, prompts_provider=prompts_provider
     )
     historical_events_agent = providers.Factory(
-        HistoricalEventsAgent, 
+        HistoricalEventsAgent,
         llm_client=anthropic_client,
-        prompts_provider=prompts_provider
+        prompts_provider=prompts_provider,
     )
     image_agent = providers.Factory(
         ImageAgent, llm_client=openai_client, prompts_provider=prompts_provider
@@ -89,7 +80,6 @@ class Container(containers.DeclarativeContainer):
         bot=bot,
         config_service=config,
         logger_service=logger_service,
-        error_handler_service=error_handler_service,
     )
     admin_commands_router = providers.Factory(
         AdminCommandsRouter,
