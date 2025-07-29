@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from aiogram import Bot, Router
 from aiogram.filters import Command
@@ -8,8 +7,8 @@ from little_turtle.constants import Reactions, error_messages, messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base.base_stories_router import BaseStoriesRouter
-from little_turtle.services import AppConfig
-from little_turtle.utils import validate_date, parse_date, pretty_print_json
+from little_turtle.app_config import AppConfig
+from little_turtle.utils import validate_date, pretty_print_json
 
 
 class SetStateRouter(BaseStoriesRouter):
@@ -27,9 +26,6 @@ class SetStateRouter(BaseStoriesRouter):
     def get_router(self) -> Router:
         self.router.message(Command("reset_target_topics"))(
             self.__reset_target_topics_handler
-        )
-        self.router.message(Command("set_image_prompt"))(
-            self.__set_image_prompt_handler
         )
         self.router.message(Command("add_target_topic"))(
             self.__add_target_topic_handler
@@ -92,16 +88,6 @@ class SetStateRouter(BaseStoriesRouter):
         await ctx.state.update_data(story=msg.reply_to_message.text)
         await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
-    async def __set_image_prompt_handler(self, msg: Message, ctx: BotContext):
-        if not msg.reply_to_message or not msg.reply_to_message.text:
-            await self.send_message(
-                error_messages.ERR_NO_REPLY_IMAGE_PROMPT, msg.chat.id
-            )
-            return
-
-        await ctx.state.update_data(image_prompt=msg.reply_to_message.text)
-        await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
-
     async def __set_image_handler(self, msg: Message, ctx: BotContext):
         if (
             not msg.reply_to_message
@@ -143,9 +129,9 @@ class SetStateRouter(BaseStoriesRouter):
             await self.send_message(error_messages.ERR_INVALID_INPUT_DATE, chat_id)
             return False
 
-        date = parse_date(message.reply_to_message.text)
-        if date < datetime.now():
-            await self.send_message(error_messages.ERR_DATE_IN_THE_PAST, chat_id)
-            return False
+        # date = parse_date(message.reply_to_message.text)
+        # if date < datetime.now():
+        #     await self.send_message(error_messages.ERR_DATE_IN_THE_PAST, chat_id)
+        #     return False
 
         return True

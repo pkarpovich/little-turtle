@@ -2,12 +2,17 @@ name: little-turtle
 
 services:
   story-bot:
-    image: ghcr.io/pkarpovich/little-turtle:latest
+    #    image: ghcr.io/pkarpovich/little-turtle:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: story-bot
     restart: unless-stopped
     environment:
       OPENAI_MODEL: ${OPENAI_MODEL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
@@ -15,14 +20,10 @@ services:
       TELEGRAM_ALLOWED_USERS: ${TELEGRAM_ALLOWED_USERS}
       USER_IDS_TO_SEND_MORNING_MSG: ${USER_IDS_TO_SEND_MORNING_MSG}
       CHAT_IDS_TO_SEND_STORIES: ${CHAT_IDS_TO_SEND_STORIES}
-      REDIS_URL: ${REDIS_URL}
-      ERROR_HANDLER_ENABLED: ${ERROR_HANDLER_ENABLED}
-      ERROR_HANDLER_DNS: ${ERROR_HANDLER_DNS}
-      ERROR_HANDLER_ENVIRONMENT: ${ERROR_HANDLER_ENVIRONMENT}
-      ERROR_HANDLER_SERVER_NAME: ${ERROR_HANDLER_SERVER_NAME}
-      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
-      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
-      LANGFUSE_URL: ${LANGFUSE_URL}
+      PHOENIX_COLLECTOR_ENDPOINT: http://phoenix:6006
+      REDIS_URL: redis://story-cache:6379/0
+    networks:
+      - telemetry
     volumes:
       - ./little_turtle/services/little_turtle.session:/app/little_turtle/services/little_turtle.session
       - story-images:/app/little_turtle/images

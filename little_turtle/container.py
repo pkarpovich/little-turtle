@@ -1,14 +1,11 @@
-import os
 
 from dependency_injector import containers, providers
-from langchain_openai import ChatOpenAI
 
-from little_turtle.chains import (
-    TurtleStoryChain,
-    ImagePromptsGeneratorChain,
-    ChainAnalytics,
-    HistoricalEventsChain,
-    ImageGeneratorChain,
+from little_turtle.llm_provider import LLMProvider, ProviderType
+from little_turtle.agents import (
+    StoryAgent,
+    HistoricalEventsAgent,
+    ImageAgent,
 )
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers import TelegramHandlers
@@ -20,62 +17,51 @@ from little_turtle.handlers.routers import (
 from little_turtle.handlers.routers.callback_query_handler_router import (
     CallbackQueryHandlerRouter,
 )
+from little_turtle.prompts.prompts_provider import PromptsProvider
+from little_turtle.app_config import create_app_config
 from little_turtle.services import (
-    AppConfig,
     LoggerService,
     TelegramService,
-    ErrorHandlerService,
-    HistoricalEventsService,
 )
 
 
 class Container(containers.DeclarativeContainer):
     logger_service = providers.Factory(LoggerService)
 
-    config = providers.Factory(AppConfig, env=os.environ)
-
-    error_handler_service = providers.Singleton(
-        ErrorHandlerService, config=config, logger_service=logger_service
-    )
+    config = providers.Singleton(create_app_config)
     telegram_service = providers.Singleton(TelegramService, config=config)
-    historical_events_service = providers.Factory(HistoricalEventsService)
 
-    model_name = providers.Callable(lambda config: config.OPENAI_MODEL, config=config)
-    openai_api_key = providers.Callable(
-        lambda config: config.OPENAI_API_KEY, config=config
-    )
+    llm_provider = providers.Singleton(LLMProvider, config=config)
 
-    llm = providers.Singleton(
-        ChatOpenAI, model_name=model_name, openai_api_key=openai_api_key
+    openai_client = providers.Factory(
+        lambda provider: provider.build(ProviderType.OPENAI), provider=llm_provider
     )
 
-    chain_analytics = providers.Factory(ChainAnalytics, config=config)
+    anthropic_client = providers.Factory(
+        lambda provider: provider.build(ProviderType.ANTHROPIC), provider=llm_provider
+    )
 
-    story_chain = providers.Factory(
-        TurtleStoryChain, llm=llm, chain_analytics=chain_analytics, config=config
+    prompts_provider = providers.Singleton(PromptsProvider)
+
+    story_agent = providers.Factory(
+        StoryAgent, llm_client=openai_client, prompts_provider=prompts_provider
     )
-    image_prompt_chain = providers.Factory(
-        ImagePromptsGeneratorChain,
-        llm=llm,
-        config=config,
-        chain_analytics=chain_analytics,
+    historical_events_agent = providers.Factory(
+        HistoricalEventsAgent,
+        llm_client=anthropic_client,
+        prompts_provider=prompts_provider,
     )
-    historical_events_chain = providers.Factory(
-        HistoricalEventsChain,
-        llm=llm,
-        config=config,
+    image_agent = providers.Factory(
+        ImageAgent, llm_client=openai_client, prompts_provider=prompts_provider
     )
-    image_generator_chain = providers.Factory(ImageGeneratorChain)
 
     stories_controller = providers.Factory(
         StoriesController,
         config=config,
-        story_chain=story_chain,
+        story_agent=story_agent,
         telegram_service=telegram_service,
-        image_prompt_chain=image_prompt_chain,
-        image_generator_chain=image_generator_chain,
-        historical_events_chain=historical_events_chain,
-        historical_events_service=historical_events_service,
+        image_agent=image_agent,
+        historical_events_agent=historical_events_agent,
     )
 
     telegram_handlers = providers.Factory(
@@ -93,7 +79,6 @@ class Container(containers.DeclarativeContainer):
         bot=bot,
         config_service=config,
         logger_service=logger_service,
-        error_handler_service=error_handler_service,
     )
     admin_commands_router = providers.Factory(
         AdminCommandsRouter,

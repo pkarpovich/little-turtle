@@ -1,54 +1,21 @@
-ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim as base
-
-ENV \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONWARNINGS="ignore::DeprecationWarning" \
-    PATH="/root/.cargo/bin:$PATH"
-
-RUN --mount=type=cache,target=/var/cache/apt \
-    set -ex \
-    # Upgrade the package index and install security upgrades
-    && apt update \
-    && apt upgrade -y \
-    && apt install -y curl \
-    # Clean up
-    && apt autoremove -y \
-    && apt clean -y \
-    && rm -rf /var/lib/apt/lists/*
-
-ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
-RUN /install.sh && rm /install.sh
-
-
-FROM base as dependencies
+FROM ghcr.io/astral-sh/uv:python3.13-alpine AS builder
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=0
 
 WORKDIR /app
-RUN uv venv
-RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    --mount=type=cache,target=/root/.cache/uv \
-    uv pip sync requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
+ADD . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 
-FROM python:${PYTHON_VERSION}-slim
+FROM python:3.13-alpine
 
+COPY --from=builder --chown=app:app /app /app
+
+ENV PATH="/app/.venv/bin:$PATH"
 WORKDIR /app
-ENV \
-    LANG=ru_RU.UTF-8 \
-    LC_ALL=ru_RU.UTF-8 \
-    PYTHONPATH="/app:${PYTHONPATH}" \
-    PATH="/app/.venv/bin:$PATH"
-RUN addgroup --system --gid 1001 appgroup \
-    && adduser --system --uid 1001 --gid 1001 --no-create-home appuser
 
-COPY --from=dependencies /app/.venv /app/.venv
-COPY . .
-
-RUN mkdir -p /app/little_turtle/images
-RUN chown -R appuser:appgroup /app
-
-USER appuser
-
-CMD python little_turtle/main.py
+CMD ["python", "-m", "little_turtle.main"]

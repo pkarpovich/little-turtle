@@ -1,17 +1,17 @@
 from abc import abstractmethod
-from os import path
+import base64
 from typing import Optional, Callable
-from urllib.parse import urlparse
 
 from aiogram import Bot, Router
-from aiogram.types import URLInputFile, BufferedInputFile
+from aiogram.types import BufferedInputFile
 
+from little_turtle.agents.historical_events_agent import HistoricalEvents
 from little_turtle.constants import Stickers, error_messages
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.actions import ForwardCallback, ForwardAction
 from little_turtle.handlers.routers.base.base_router import BaseRouter
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 from little_turtle.utils import (
     prepare_buttons,
     validate_date,
@@ -33,20 +33,24 @@ class BaseStoriesRouter(BaseRouter):
     def get_router(self) -> Router:
         pass
 
-    async def suggest_target_topics(self, ctx: BotContext) -> [str]:
+    async def suggest_target_topics(self, ctx: BotContext) -> HistoricalEvents:
         data = await ctx.state.get_data()
         date = data.get("date")
 
-        topics_str = self.story_controller.suggest_on_this_day_events(
+        topics = self.story_controller.suggest_on_this_day_events(
             date or ctx.message.reply_to_message.text
         )
-        topics = topics_str.split("\n\n")
+
+        topics_str = "\n\n".join(
+            f"{event + 1}. {event_name}"
+            for event, event_name in enumerate(topics.events)
+        )
 
         buttons = {
-            str(i + 1): ForwardCallback(
-                action=ForwardAction.SELECT_TARGET_TOPIC, payload=str(i + 1)
+            str(event + 1): ForwardCallback(
+                action=ForwardAction.SELECT_TARGET_TOPIC, payload=str(event + 1)
             )
-            for i, _ in enumerate(topics[:5])
+            for event, _ in enumerate(topics.events)
         }
 
         await self.send_message(
@@ -74,30 +78,18 @@ class BaseStoriesRouter(BaseRouter):
 
         return story
 
-    async def generate_image_prompt(self, ctx: BotContext) -> Optional[str]:
-        text = (await ctx.state.get_data()).get("story")
-
-        image_prompt = self.story_controller.suggest_story_prompt(text)
-        await self.send_message(
-            image_prompt,
-            chat_id=ctx.chat_id,
-            buttons=prepare_buttons(
-                {
-                    "👎": ForwardCallback(action=ForwardAction.REGENERATE_IMAGE_PROMPT),
-                    "👍": ForwardCallback(action=ForwardAction.SET_IMAGE_PROMPT),
-                }
-            ),
-        )
-
-        return image_prompt
+    def _base64_to_input_file(
+        self, base64_data: str, filename: str = "generated_image.png"
+    ) -> BufferedInputFile:
+        """Convert base64 encoded image to BufferedInputFile for Telegram."""
+        image_bytes = base64.b64decode(base64_data)
+        return BufferedInputFile(file=image_bytes, filename=filename)
 
     async def generate_image(self, ctx: BotContext):
-        image_prompt = (await ctx.state.get_data()).get("image_prompt")
-        image_url = self.story_controller.imagine_story(image_prompt)
+        story = (await ctx.state.get_data()).get("story")
+        image_base64 = self.story_controller.imagine_story(story)
+        image = self._base64_to_input_file(image_base64)
 
-        image = URLInputFile(
-            image_url, filename=path.basename(urlparse(image_url).path)
-        )
         return await self.bot.send_photo(
             ctx.chat_id,
             image,
