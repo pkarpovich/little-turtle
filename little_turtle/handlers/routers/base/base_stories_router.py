@@ -1,11 +1,9 @@
 from abc import abstractmethod
 import base64
-from os import path
 from typing import Optional, Callable
-from urllib.parse import urlparse
 
 from aiogram import Bot, Router
-from aiogram.types import URLInputFile, BufferedInputFile
+from aiogram.types import BufferedInputFile
 
 from little_turtle.agents.historical_events_agent import HistoricalEvents
 from little_turtle.constants import Stickers, error_messages

@@ -14,7 +14,7 @@ from little_turtle.agents.story_agent import StoryAgentVariables
 from little_turtle.agents.image_agent import ImageAgentVariables
 from little_turtle.app_config import AppConfig
 from little_turtle.services import TelegramService
-from little_turtle.utils import remove_optional_last_period, get_day_of_week
+from little_turtle.utils import get_day_of_week
 
 
 class StoryResponse(TypedDict):

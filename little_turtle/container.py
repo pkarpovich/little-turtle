@@ -1,4 +1,3 @@
-import os
 
 from dependency_injector import containers, providers
 
@@ -19,7 +18,7 @@ from little_turtle.handlers.routers.callback_query_handler_router import (
     CallbackQueryHandlerRouter,
 )
 from little_turtle.prompts.prompts_provider import PromptsProvider
-from little_turtle.app_config import AppConfig, create_app_config
+from little_turtle.app_config import create_app_config
 from little_turtle.services import (
     LoggerService,
     TelegramService,

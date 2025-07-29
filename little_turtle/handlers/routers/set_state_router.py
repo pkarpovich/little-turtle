@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from aiogram import Bot, Router
 from aiogram.filters import Command
@@ -9,7 +8,7 @@ from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base.base_stories_router import BaseStoriesRouter
 from little_turtle.app_config import AppConfig
-from little_turtle.utils import validate_date, parse_date, pretty_print_json
+from little_turtle.utils import validate_date, pretty_print_json
 
 
 class SetStateRouter(BaseStoriesRouter):
