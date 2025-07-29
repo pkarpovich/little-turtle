@@ -19,6 +19,7 @@ services:
       PHOENIX_COLLECTOR_ENDPOINT: http://phoenix:6006
     networks:
       - telemetry
+      - default
     volumes:
       - ./little_turtle/services/little_turtle.session:/app/little_turtle/services/little_turtle.session
       - story-images:/app/little_turtle/images
