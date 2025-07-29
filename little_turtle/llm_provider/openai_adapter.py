@@ -1,7 +1,7 @@
 from typing import Any
 from openai import OpenAI
 
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 from .base import BaseLLMAdapter
 from .protocols import LLMResponse
 

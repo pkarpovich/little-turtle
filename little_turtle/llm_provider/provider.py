@@ -1,4 +1,4 @@
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 from .types import ProviderType
 from .protocols import LLMClient
 from .base import BaseLLMAdapter

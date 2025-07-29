@@ -11,7 +11,8 @@ from little_turtle.handlers.routers import (
     SetStateRouter,
     CallbackQueryHandlerRouter,
 )
-from little_turtle.services import AppConfig, LoggerService
+from little_turtle.app_config import AppConfig
+from little_turtle.services import LoggerService
 
 
 class TelegramHandlers:

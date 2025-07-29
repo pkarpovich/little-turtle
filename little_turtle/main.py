@@ -12,7 +12,7 @@ from little_turtle.handlers.routers import (
     SetStateRouter,
     AdminCommandsRouter,
 )
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 
 
 def initialize_telemetry(config: AppConfig):

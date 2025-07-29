@@ -13,7 +13,7 @@ from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.actions import ForwardCallback, ForwardAction
 from little_turtle.handlers.routers.base.base_router import BaseRouter
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 from little_turtle.utils import (
     prepare_buttons,
     validate_date,

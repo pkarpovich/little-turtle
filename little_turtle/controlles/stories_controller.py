@@ -9,7 +9,8 @@ from little_turtle.agents import (
 from little_turtle.agents.historical_events_agent import HistoricalEvents, HistoricalEventsAgentVariables
 from little_turtle.agents.story_agent import StoryAgentVariables
 from little_turtle.agents.image_agent import ImageAgentVariables
-from little_turtle.services import AppConfig, TelegramService
+from little_turtle.app_config import AppConfig
+from little_turtle.services import TelegramService
 from little_turtle.utils import remove_optional_last_period, get_day_of_week
 
 

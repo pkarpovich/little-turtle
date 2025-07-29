@@ -7,7 +7,8 @@ from aiogram.types import Message
 from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.base.base_stories_router import BaseStoriesRouter
-from little_turtle.services import AppConfig, TelegramService
+from little_turtle.app_config import AppConfig
+from little_turtle.services import TelegramService
 
 
 class ImageCallback(CallbackData, prefix="turtle_image"):

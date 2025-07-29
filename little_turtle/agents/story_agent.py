@@ -1,7 +1,7 @@
 from typing import TypedDict, List
 
 from little_turtle.prompts.prompts_provider import PromptsProvider
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 from little_turtle.llm_provider import LLMClient
 
 

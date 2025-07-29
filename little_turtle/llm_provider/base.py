@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 from .protocols import LLMResponse, Tool
 
 

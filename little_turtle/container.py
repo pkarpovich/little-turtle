@@ -19,8 +19,8 @@ from little_turtle.handlers.routers.callback_query_handler_router import (
     CallbackQueryHandlerRouter,
 )
 from little_turtle.prompts.prompts_provider import PromptsProvider
+from little_turtle.app_config import AppConfig, create_app_config
 from little_turtle.services import (
-    AppConfig,
     LoggerService,
     TelegramService,
 )
@@ -29,7 +29,7 @@ from little_turtle.services import (
 class Container(containers.DeclarativeContainer):
     logger_service = providers.Factory(LoggerService)
 
-    config = providers.Factory(AppConfig, env=os.environ)
+    config = providers.Singleton(create_app_config)
     telegram_service = providers.Singleton(TelegramService, config=config)
 
     llm_provider = providers.Singleton(LLMProvider, config=config)

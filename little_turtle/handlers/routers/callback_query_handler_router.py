@@ -10,7 +10,8 @@ from little_turtle.controlles import StoriesController
 from little_turtle.handlers.middlewares import BotContext
 from little_turtle.handlers.routers.actions import ForwardAction, ForwardCallback
 from little_turtle.handlers.routers.base import BaseStoriesRouter
-from little_turtle.services import AppConfig, LoggerService, TelegramService
+from little_turtle.app_config import AppConfig
+from little_turtle.services import LoggerService, TelegramService
 
 
 class CallbackQueryHandlerRouter(BaseStoriesRouter):

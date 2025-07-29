@@ -5,7 +5,7 @@ from typing import Union, BinaryIO, Optional
 
 from telethon import TelegramClient
 
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 
 
 class TelegramService:

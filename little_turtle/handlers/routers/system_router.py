@@ -5,7 +5,8 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from little_turtle.constants import error_messages, messages, ReplyKeyboardItems
 from little_turtle.handlers.routers.base.base_router import BaseRouter
-from little_turtle.services import LoggerService, AppConfig
+from little_turtle.app_config import AppConfig
+from little_turtle.services import LoggerService
 from little_turtle.utils import prepare_buttons
 
 

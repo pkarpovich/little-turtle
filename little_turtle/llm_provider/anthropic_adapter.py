@@ -1,7 +1,7 @@
 from typing import Any, Optional
 from anthropic import Anthropic
 
-from little_turtle.services import AppConfig
+from little_turtle.app_config import AppConfig
 from .base import BaseLLMAdapter
 from .protocols import LLMResponse, Tool
 
