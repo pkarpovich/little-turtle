@@ -89,7 +89,6 @@ class SetStateRouter(BaseStoriesRouter):
         await ctx.state.update_data(story=msg.reply_to_message.text)
         await self.set_message_reaction(msg.chat.id, msg.message_id, Reactions.LIKE)
 
-
     async def __set_image_handler(self, msg: Message, ctx: BotContext):
         if (
             not msg.reply_to_message

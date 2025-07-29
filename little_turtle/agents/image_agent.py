@@ -17,7 +17,7 @@ class ImageAgent:
         prompt = self.prompts_provider.format("little_turtle_image", prompt_vars)
 
         return self.llm_client.generate_image(
-            prompt.messages[0]['content'],
-            prompt.messages[1]['content'],
+            prompt.messages[0]["content"],
+            prompt.messages[1]["content"],
             **prompt,
         )

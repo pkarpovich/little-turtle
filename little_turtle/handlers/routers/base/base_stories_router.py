@@ -43,7 +43,10 @@ class BaseStoriesRouter(BaseRouter):
             date or ctx.message.reply_to_message.text
         )
 
-        topics_str = "\n\n".join(f"{event + 1}. {event_name}" for event, event_name in enumerate(topics.events))
+        topics_str = "\n\n".join(
+            f"{event + 1}. {event_name}"
+            for event, event_name in enumerate(topics.events)
+        )
 
         buttons = {
             str(event + 1): ForwardCallback(
@@ -77,8 +80,9 @@ class BaseStoriesRouter(BaseRouter):
 
         return story
 
-
-    def _base64_to_input_file(self, base64_data: str, filename: str = "generated_image.png") -> BufferedInputFile:
+    def _base64_to_input_file(
+        self, base64_data: str, filename: str = "generated_image.png"
+    ) -> BufferedInputFile:
         """Convert base64 encoded image to BufferedInputFile for Telegram."""
         image_bytes = base64.b64decode(base64_data)
         return BufferedInputFile(file=image_bytes, filename=filename)
@@ -87,7 +91,7 @@ class BaseStoriesRouter(BaseRouter):
         story = (await ctx.state.get_data()).get("story")
         image_base64 = self.story_controller.imagine_story(story)
         image = self._base64_to_input_file(image_base64)
-        
+
         return await self.bot.send_photo(
             ctx.chat_id,
             image,

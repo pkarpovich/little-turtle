@@ -20,5 +20,5 @@ class StoryAgent:
         resp = self.llm_client.create_completion(
             **self.prompts_provider.format("little_turtle_story", prompt_vars),
         )
-        
+
         return resp.content

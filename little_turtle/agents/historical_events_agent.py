@@ -8,7 +8,10 @@ RECORD_HISTORICAL_EVENTS_TOOL = "record_historical_events"
 
 
 class HistoricalEvents(BaseModel):
-    events: list[str] = Field(description="List of historical events for a specific day")
+    events: list[str] = Field(
+        description="List of historical events for a specific day"
+    )
+
 
 class HistoricalEventsAgentVariables(TypedDict):
     language: str
@@ -26,22 +29,25 @@ def get_structured_output_tool() -> dict[str, any]:
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "description": "A historical event with year and description"
+                        "description": "A historical event with year and description",
                     },
-                    "description": "List of historical events for a specific day"
+                    "description": "List of historical events for a specific day",
                 }
             },
-            "required": ["events"]
-        }
+            "required": ["events"],
+        },
     }
 
 
 def extract_structured_output(response) -> HistoricalEvents:
-    if hasattr(response.raw_response, 'content'):
+    if hasattr(response.raw_response, "content"):
         for content in response.raw_response.content:
-            if content.type == "tool_use" and content.name == RECORD_HISTORICAL_EVENTS_TOOL:
+            if (
+                content.type == "tool_use"
+                and content.name == RECORD_HISTORICAL_EVENTS_TOOL
+            ):
                 return HistoricalEvents(**content.input)
-    
+
     raise ValueError("No structured output found in response")
 
 
@@ -50,12 +56,13 @@ class HistoricalEventsAgent:
         self.prompts_provider = prompts_provider
         self.llm_client = llm_client
 
-
     def run(self, prompt_vars: HistoricalEventsAgentVariables) -> HistoricalEvents:
         search_tool = self.llm_client.get_search_tool()
         resp = self.llm_client.create_completion_with_tools(
             tools=[search_tool, get_structured_output_tool()],
-            **self.prompts_provider.format("little_turtle_historical_events", prompt_vars),
+            **self.prompts_provider.format(
+                "little_turtle_historical_events", prompt_vars
+            ),
         )
 
         return extract_structured_output(resp)

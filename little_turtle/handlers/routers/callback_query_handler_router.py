@@ -75,7 +75,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
             case ForwardAction.REGENERATE_STORY:
                 await self.async_generate_action(ctx, self.generate_story)
 
-
             case ForwardAction.REGENERATE_IMAGE:
                 await self.async_generate_action(ctx, self.generate_image)
 
@@ -94,7 +93,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
 
             case ForwardAction.SET_STORY:
                 await ctx.state.update_data(story=msg.text)
-
 
             case ForwardAction.SET_IMAGE:
                 image_path = await self.save_file_to_disk(msg.photo[-1].file_id)
@@ -120,7 +118,6 @@ class CallbackQueryHandlerRouter(BaseStoriesRouter):
         match ctx.message.text:
             case ReplyKeyboardItems.STORY.value:
                 await self.async_generate_action(ctx, self.generate_story)
-
 
             case ReplyKeyboardItems.IMAGE.value:
                 await self.async_generate_action(ctx, self.generate_image)

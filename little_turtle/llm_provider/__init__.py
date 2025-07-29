@@ -7,7 +7,7 @@ from .types import ProviderType
 
 __all__ = [
     "LLMClient",
-    "LLMResponse", 
+    "LLMResponse",
     "BaseLLMAdapter",
     "OpenAIAdapter",
     "AnthropicAdapter",

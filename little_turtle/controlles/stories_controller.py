@@ -6,7 +6,10 @@ from little_turtle.agents import (
     ImageAgent,
     StoryAgent,
 )
-from little_turtle.agents.historical_events_agent import HistoricalEvents, HistoricalEventsAgentVariables
+from little_turtle.agents.historical_events_agent import (
+    HistoricalEvents,
+    HistoricalEventsAgentVariables,
+)
 from little_turtle.agents.story_agent import StoryAgentVariables
 from little_turtle.agents.image_agent import ImageAgentVariables
 from little_turtle.app_config import AppConfig
@@ -52,7 +55,6 @@ class StoriesController:
                 story=story,
             )
         )
-
 
     def suggest_story(
         self,
