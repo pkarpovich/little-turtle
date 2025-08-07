@@ -49,7 +49,7 @@ class OpenAIAdapter(BaseLLMAdapter):
 
     def generate_image(self, instructions: str, input_text: str, **kwargs) -> str:
         resp = self.client.responses.create(
-            model=kwargs.get("model", "gpt-4.1"),
+            model=kwargs.get("model", "gpt-5"),
             instructions=instructions,
             input=input_text,
             tools=[{"type": "image_generation"}],

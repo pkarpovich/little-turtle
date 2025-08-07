@@ -19,5 +19,5 @@ class ImageAgent:
         return self.llm_client.generate_image(
             prompt.messages[0]["content"],
             prompt.messages[1]["content"],
-            **prompt,
+            model="gpt-5",
         )

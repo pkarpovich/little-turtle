@@ -40,3 +40,7 @@ services:
 volumes:
   story-images:
   langfuse-db-data:
+
+networks:
+  telemetry:
+    external: true

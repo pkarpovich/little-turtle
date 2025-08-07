@@ -7,7 +7,7 @@ readme = "README.md"
 requires-python = ">= 3.13"
 dependencies = [
     "python-dotenv>=1.0.1",
-    "openai>=1.23.6",
+    "openai>=1.99.3",
     "telethon>=1.35.0",
     "dependency-injector>=4.48.1",
     "aiogram>=3.5.0",

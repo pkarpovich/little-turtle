@@ -16,8 +16,12 @@ class StoryAgent:
         self.prompts_provider = prompts_provider
 
     def run(self, prompt_vars: StoryAgentVariables) -> str:
+        prompt = self.prompts_provider.format("little_turtle_story", prompt_vars)
+
         resp = self.llm_client.create_completion(
-            **self.prompts_provider.format("little_turtle_story", prompt_vars),
+            messages=prompt.messages,
+            temperature=1,
+            model="gpt-5",
         )
 
         return resp.content
